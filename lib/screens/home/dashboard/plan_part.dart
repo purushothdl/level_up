@@ -49,7 +49,7 @@ class GymPlanWidget extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.only(left: 8, right: 8, top: 3, bottom: 3 ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.orange.withOpacity(1),
                       borderRadius: BorderRadius.circular(8.0), // Rounded corners for the plan name container
                     ),
                     child: Text(
@@ -128,12 +128,12 @@ class GymPlanWidget extends StatelessWidget {
 
                   // Centered Remaining and Total Days with larger gap
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Center the entire row's contents
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Center the entire row's contents
                     children: [
                       // "Remaining" Section with Expanded to take equal space
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 22.0, right: 22.0),
+                          padding: const EdgeInsets.only(left: 4.0, right: 4.0),
                           child: _buildDayInfo('Remaining', remainingDays),
                         ),
                       ),
@@ -143,7 +143,7 @@ class GymPlanWidget extends StatelessWidget {
                       // "Total" Section with Expanded to take equal space
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 22.0, right: 22.0),
+                          padding: const EdgeInsets.only(left: 4.0, right: 4.0),
                           child: _buildDayInfo('Total', totalDays),
                         ),
                       ),
@@ -163,7 +163,7 @@ class GymPlanWidget extends StatelessWidget {
   Widget _buildDayInfo(String title, int days) {
     return Container(
 
-      padding: EdgeInsets.only(left: 12, right: 12, top: 2, bottom: 2), // Add padding around the content
+      padding: EdgeInsets.only(left: 12, right: 12, top: 3, bottom: 3), // Add padding around the content
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.3), // White background with opacity
         // border: Border.all(
