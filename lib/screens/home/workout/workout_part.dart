@@ -19,57 +19,54 @@ class _WorkOutPartState extends State<WorkOutPart> {
   Widget build(BuildContext context) {
     String selectedDay = daysOfWeek[_selectedIndex].toFullString();
 
-    // Safely fetch exercises (fallback to empty list if null)
     List<dynamic> exercises = (widget.workoutData[selectedDay] ?? [])
-        .where((exercise) => exercise != null) // Filter out any null values
+        .where((exercise) => exercise != null)
         .toList();
 
     return Column(
       children: [
         const SizedBox(height: 10),
-
-        // Navbar for days of the week
         NavbarWidget(
           values: daysOfWeek.map((e) => e.toString().split('.').last).toList(),
           selectedIndex: _selectedIndex,
           onTap: (index) {
             setState(() {
-              _selectedIndex = index; // Update selected index
+              _selectedIndex = index;
             });
           },
         ),
-
         const SizedBox(height: 10),
-
-        // Display workout widgets for each exercise
-        Expanded(
-          child: ListView(
-            children: exercises.isNotEmpty
-                ? exercises.map((exercise) {
-                    return WorkoutWidget(
-                      workout: exercise['name'] ?? 'Unnamed Workout',
-                      level: exercise['level'] ?? 'Unknown Level',
-                      sets: exercise['sets'] ?? 0,
-                      reps: exercise['reps'] ?? 0,
-                      type: exercise['type'] ?? 'Unknown Type',
-                    );
-                  }).toList()
-                : [ 
-                    SizedBox(height: 80),
-                    const Center(
-                      
-                      child: Text(
-                        'No exercises available for this day.',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    )
-                  ],
-          ),
+        // Use PageStorageKey to preserve scroll position for each tab
+        ListView(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          key: PageStorageKey<int>(_selectedIndex),  // This ensures the scroll position is saved per tab
+          children: exercises.isNotEmpty
+              ? exercises.map((exercise) {
+                  return WorkoutWidget(
+                    workout: exercise['name'] ?? 'Unnamed Workout',
+                    level: exercise['level'] ?? 'Unknown Level',
+                    sets: exercise['sets'] ?? 0,
+                    reps: exercise['reps'] ?? 0,
+                    type: exercise['type'] ?? 'Unknown Type',
+                  );
+                }).toList()
+              : [
+                  SizedBox(height: 80),
+                  const Center(
+                    child: Text(
+                      'No exercises available for this day.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  )
+                ],
         ),
       ],
     );
   }
 }
+
+
 
 // Weekday enum and extension
 enum Weekday { Mon, Tue, Wed, Thu, Fri, Sat, Sun }

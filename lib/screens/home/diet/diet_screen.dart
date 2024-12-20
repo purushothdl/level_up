@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:level_up/screens/home/home_screen.dart';
-import 'package:level_up/services/user_service.dart';
+import 'package:LevelUp/screens/home/home_screen.dart';
+import 'package:LevelUp/services/user_service.dart';
 import 'detox_screen.dart';
 import './diet_widgets/menu_plan_widget.dart';
 import './diet_plan_part.dart';
@@ -57,7 +57,7 @@ Future<void> _loadDietData() async {
         toolbarHeight: 50,
         title: Text(
           'Diet Plan',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold ,fontSize: 20),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -111,7 +111,7 @@ Future<void> _loadDietData() async {
                         ),
                         SizedBox(height: 4),
                         ImageOverlayButton(
-                          imagePath: 'assets/image.png',
+                          imagePath: 'assets/images/diet/detox/test_detox.gif',
                           buttonLabel: 'Detox',
                           targetScreen: DetoxScreen(),
                         ),

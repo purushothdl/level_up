@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:convert';
 
-class WeightGraph extends StatefulWidget {
-  const WeightGraph({super.key});
+class StyledWeightGraph extends StatefulWidget {
+  const StyledWeightGraph({super.key});
 
   @override
-  _WeightGraphState createState() => _WeightGraphState();
+  _StyledWeightGraphState createState() => _StyledWeightGraphState();
 }
 
-class _WeightGraphState extends State<WeightGraph> {
+class _StyledWeightGraphState extends State<StyledWeightGraph> {
   final String jsonData = '''
   {
     "weight_tracking": {
       "sep1": "76 Kg",
-      "sep8": "74 Kg",
+      "sep8": "78 Kg",
       "sep16": "74.6 Kg",
       "sep22": "73.8 Kg",
       "sep29": "73 Kg",
-      "oct6": "72.5 Kg",
+      "oct6": "77.5 Kg",
       "oct13": "73 Kg",
       "oct20": "71.2 Kg",
       "oct27": "70.6 Kg",
@@ -31,11 +31,13 @@ class _WeightGraphState extends State<WeightGraph> {
   ''';
 
   late List<WeightData> weightData;
+  double sliderValue = 0.0;
 
   @override
   void initState() {
     super.initState();
     _initializeData();
+    sliderValue = 0.0; // Start slider at the beginning
   }
 
   void _initializeData() {
@@ -49,177 +51,118 @@ class _WeightGraphState extends State<WeightGraph> {
 
   @override
   Widget build(BuildContext context) {
-    // Split the data at the 8th point
-    int splitIndex = 8; // Index of the 8th point
-
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 250,
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(left: 16, right: 16),
-                  padding: EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SfCartesianChart(
-                    borderWidth: 0,
-                    primaryXAxis: CategoryAxis(
-                      axisLine: AxisLine(width: 0),
-                      majorGridLines: MajorGridLines(width: 0),
-                      majorTickLines: MajorTickLines(width: 0),
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        color: Colors.transparent,
-                      ),
-                      labelPlacement: LabelPlacement.onTicks,
-                      labelIntersectAction: AxisLabelIntersectAction.none,
-                      isVisible: true,
-                      interval: 3,
-                    ),
-                    primaryYAxis: NumericAxis(
-                      axisLine: AxisLine(width: 0),
-                      isVisible: false,
-                      interval: 3,
-                      majorGridLines: MajorGridLines(width: 0),
-                    ),
-                    tooltipBehavior: TooltipBehavior(
-                      enable: true,
-                      format: 'point.x: point.y Kg',
-                    ),
-                    margin: const EdgeInsets.all(0),
-                    series: <ChartSeries>[
-                      SplineAreaSeries<WeightData, String>(
-                        name: "Past Weights",
-                        dataSource: weightData.sublist(0, splitIndex + 1),
-                        xValueMapper: (WeightData data, _) => data.date,
-                        yValueMapper: (WeightData data, _) => data.weight,
-                        splineType: SplineType.natural,
-                        color: Colors.blue.withOpacity(0.2),
-                        borderColor: Colors.blue,
-                        borderWidth: 3,
-                        markerSettings: MarkerSettings(
-                          isVisible: true,
-                          width: 8,
-                          height: 8,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      SplineAreaSeries<WeightData, String>(
-                        name: "Predicted Weights",
-                        dataSource: weightData.sublist(splitIndex),
-                        xValueMapper: (WeightData data, _) => data.date,
-                        yValueMapper: (WeightData data, _) => data.weight,
-                        splineType: SplineType.natural,
-                        color: Colors.orange.withOpacity(0.2),
-                        borderColor: Colors.orange,
-                        borderWidth: 3,
-                        markerSettings: MarkerSettings(
-                          isVisible: true,
-                          width: 8,
-                          height: 8,
-                          color: Colors.orange,
-                        ),
-                      ),
-                      SplineSeries<WeightData, String>(
-                        name: 'Current Weight',
-                        dataSource: [weightData[splitIndex]],
-                        xValueMapper: (WeightData data, _) => data.date,
-                        yValueMapper: (WeightData data, _) => data.weight,
-                        splineType: SplineType.natural,
-                        color: Colors.transparent,
-                        markerSettings: MarkerSettings(
-                          isVisible: true,
-                          width: 10,
-                          height: 10,
-                          color: Colors.blue,
-                          borderColor: Colors.grey[800],
-                          borderWidth: 3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 20,
-                  left: 18,
-                  child: _buildOverlayLabel(context, 'Past', Colors.blue.withOpacity(0.9)),
-                ),
-                Positioned(
-                  bottom: 20,
-                  right: 18,
-                  child: _buildOverlayLabel(context, 'Predicted', Colors.orange.withOpacity(0.9)),
+      backgroundColor: Colors.white,
+      body: GestureDetector(
+        onHorizontalDragUpdate: (details) {
+          setState(() {
+            sliderValue = (sliderValue + details.delta.dx / 20).clamp(0.0, weightData.length - 1.0);
+          });
+        },
+        onTapDown: (TapDownDetails details) {
+          setState(() {
+            double position = details.localPosition.dx;
+            double chartWidth = MediaQuery.of(context).size.width - 32; // Adjust for padding
+            double value = (position / chartWidth) * (weightData.length - 1);
+            sliderValue = value.clamp(0.0, weightData.length - 1.0);
+          });
+        },
+        child: Center(
+          child: Container(
+            height: 230,
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.only(bottom: 2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
-            // Add month labels below the graph
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildMonthLabel(context, 'Sep'),
-                  _buildMonthLabel(context, 'Oct'),
-                  _buildMonthLabel(context, 'Nov'),
-                ],
-              ),
+            child: Stack(
+              children: [
+                SfCartesianChart(
+                  plotAreaBorderWidth: 0,
+                  margin: EdgeInsets.zero,
+                  series: <ChartSeries>[
+                    SplineAreaSeries<WeightData, String>(
+                      dataSource: weightData,
+                      xValueMapper: (WeightData data, _) => data.date,
+                      yValueMapper: (WeightData data, _) => data.weight,
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.blue.withOpacity(0.6),
+                          Colors.blue.withOpacity(0.25),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      splineType: SplineType.natural,
+                      borderColor: Colors.blue,
+                      borderWidth: 3,
+                    ),
+                    SplineSeries<WeightData, String>(
+                      dataSource: [weightData[sliderValue.toInt()]],
+                      xValueMapper: (WeightData data, _) => data.date,
+                      yValueMapper: (WeightData data, _) => data.weight,
+                      color: Colors.transparent,
+                      markerSettings: MarkerSettings(
+                        isVisible: true,
+                        color: Colors.white,
+                        borderColor: Colors.blue,
+                        borderWidth: 4,
+                        width: 12,
+                        height: 12,
+                      ),
+                    ),
+                  ],
+                  primaryXAxis: CategoryAxis(
+                    isVisible: false,
+                    majorGridLines: MajorGridLines(width: 0),
+                    axisLine: AxisLine(width: 0),
+                  ),
+                  primaryYAxis: NumericAxis(
+                    isVisible: false,
+                    majorGridLines: MajorGridLines(width: 0),
+                    axisLine: AxisLine(width: 0),
+                  ),
+                ),
+                // Weight value at the top-right
+                Positioned(
+                  right: 16,
+                  top: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '${weightData[sliderValue.toInt()].weight} Kg',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildMonthLabel(BuildContext context, String month) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-
-    return Container(
-      margin: EdgeInsets.all(0),
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        month,
-        style: TextStyle(
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-          fontSize: screenWidth < 400 ? 10 : 13,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOverlayLabel(BuildContext context, String text, Color backgroundColor) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double containerWidth = screenWidth * 0.2;
-    final double containerHeight = 25;
-
-    return Container(
-      margin: EdgeInsets.all(screenWidth * 0.04),
-      width: containerWidth,
-      height: containerHeight,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: screenWidth < 400 ? 10 : 12,
-        ),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
       ),
     );
   }

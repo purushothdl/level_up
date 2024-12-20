@@ -1,4 +1,3 @@
-import 'dart:math'; // Import the math library for sqrt
 import 'package:flutter/material.dart';
 
 class NavbarWidget extends StatefulWidget {
@@ -20,16 +19,12 @@ class NavbarWidget extends StatefulWidget {
 class _NavbarWidgetState extends State<NavbarWidget> {
   @override
   Widget build(BuildContext context) {
-    // Get the screen dimensions
+    // Get the screen dimensions using MediaQuery
     final Size screenSize = MediaQuery.of(context).size;
 
-    // Calculate diagonal size in inches (for better scaling)
-    final double diagonalSize = sqrt(screenSize.width * screenSize.width +
-                                      screenSize.height * screenSize.height) / 160; // 160 pixels per inch (PPI)
-
-    // Set responsive sizes based on diagonal size
-    final double containerHeight = diagonalSize < 6 ? 40 : 45; // Height based on diagonal size
-    final double fontSize = diagonalSize < 6 ? 14 : 16; // Font size based on diagonal size
+    // Set responsive sizes based on screen height
+    final double containerHeight = screenSize.height < 600 ? 40 : 46; // Navbar height
+    final double fontSize = screenSize.height < 600 ? 14 : 16; // Font size based on screen height
 
     return Container(
       height: containerHeight,
@@ -42,21 +37,21 @@ class _NavbarWidgetState extends State<NavbarWidget> {
       child: Row(
         children: widget.values.map((value) {
           int index = widget.values.indexOf(value);
-          return Expanded(
+          return Flexible(
             child: GestureDetector(
               onTap: () {
                 widget.onTap(index);
               },
               child: Container(
                 alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 1),
+                padding: const EdgeInsets.symmetric(vertical: 0), // Shorter padding for blue background
                 decoration: BoxDecoration(
                   color: widget.selectedIndex == index
                       ? Colors.blue
                       : const Color.fromARGB(255, 240, 240, 240),
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
                 child: Text(
                   value,
                   style: TextStyle(

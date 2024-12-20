@@ -20,11 +20,13 @@ class WorkoutUploadDialog extends StatefulWidget {
   _WorkoutUploadDialogState createState() => _WorkoutUploadDialogState();
 }
 
+
+
 class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
   late TextEditingController setsController;
   late TextEditingController repsController;
   late TextEditingController weightController;
-  String? selectedIntensity;
+  String? selectedIntensity = "1";
 
   @override
   void initState() {
@@ -57,7 +59,7 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.orange,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: const Text(
@@ -104,7 +106,16 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                     width: 200,
                     height: 200,
                     fit: BoxFit.contain,
-                  ),
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/images/workouts/Bench Press.gif',  // your default image path
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.contain,
+                      );
+                    },
+                  )
+
                 ),
               ),
               const SizedBox(height: 5),
@@ -223,54 +234,69 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                   ),
 
                   const SizedBox(width: 16),
+                  
+
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Intensity', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Intensity',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         Container(
-                          child: DropdownButtonFormField<String>(
-                            value: selectedIntensity,
-                            hint: const Text(
-                              'Select Intensity',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.blue.withOpacity(0.6), // Border color
+                              width: 1.5, // Border thickness
                             ),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedIntensity = newValue!;
-                              });
-                            },
-                            items: List.generate(10, (index) => (index + 1).toString())
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value, style: const TextStyle(color: Colors.black)),
-                              );
-                            }).toList(),
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: BorderSide(color: Colors.blue.withOpacity(0.6), width: 1.5),
+                            borderRadius: BorderRadius.circular(4), // Rounded corners
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center, // Center the row
+                            children: [
+                              // Decrease button
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () {
+                                  setState(() {
+                                    // Decrement intensity, ensuring it's between 1 and 10
+                                    if (selectedIntensity != null && int.parse(selectedIntensity!) > 1) {
+                                      selectedIntensity = (int.parse(selectedIntensity!) - 1).toString();
+                                    }
+                                  });
+                                },
+                                color: Colors.blue,
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                              // Display current intensity value, use fallback if null
+                              Text(
+                                selectedIntensity ?? "1", // If null, fallback to "1"
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: BorderSide(color: Colors.blue.withOpacity(0.6), width: 1.5),
+                              // Increase button
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () {
+                                  setState(() {
+                                    // Increment intensity, ensuring it's between 1 and 10
+                                    if (selectedIntensity != null && int.parse(selectedIntensity!) < 10) {
+                                      selectedIntensity = (int.parse(selectedIntensity!) + 1).toString();
+                                    }
+                                  });
+                                },
+                                color: Colors.blue,
                               ),
-                            ),
-                            dropdownColor: Colors.white,
-                            style: const TextStyle(fontSize: 14, color: Colors.black),
-                                                        icon: const Icon(Icons.arrow_drop_down, color: Colors.blue),
-                            isExpanded: true,
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
+                  )
+
+
+
+
                 ],
               ),
               const SizedBox(height: 16),

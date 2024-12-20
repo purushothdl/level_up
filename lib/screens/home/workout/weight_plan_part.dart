@@ -25,7 +25,7 @@ class WeightPlanWidget extends StatelessWidget {
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-      margin: EdgeInsets.only(left:8, right: 8),
+      margin: EdgeInsets.only(left: 8, right: 8),
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -39,26 +39,23 @@ class WeightPlanWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Wrap the Stack with a SizedBox to give it finite constraints
           SizedBox(
-            width: double.infinity,  // Ensures it takes the full width
-            height: 180,  // Assign a fixed height to the Stack
+            width: double.infinity,
+            height: 150,
             child: Stack(
               children: [
-                // Image section as the background with black overlay
-                Positioned.fill( // Ensures the background container fills the stack
+                Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/image.png'), // Replace with your image
+                        image: AssetImage('assets/images/image.png'),
                         fit: BoxFit.cover,
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-                // Black overlay
-                Positioned.fill( // Ensures the overlay container also fills the stack
+                Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.5),
@@ -66,27 +63,35 @@ class WeightPlanWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Plan name on top-left
+                // Plan name with dynamic width constraint
                 Positioned(
                   top: 16,
                   left: 16,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      planName,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth - 32, // leave some space for padding
+                        ),
+                        child: Text(
+                          planName,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            overflow: TextOverflow.ellipsis, // Handle overflow
+                          ),
+                          softWrap: false, // Prevent wrapping
+                        ),
+                      );
+                    },
                   ),
                 ),
-                // Info boxes as overlays with a vertical divider between them
                 Positioned(
                   bottom: 2,
                   left: 0,
@@ -99,17 +104,14 @@ class WeightPlanWidget extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        // Info box for current weight
                         Expanded(
                           child: _buildInfoBox(currentWeightHeader, currentWeight, currentWeightUnits, context),
                         ),
-                        // White vertical divider
                         Container(
                           width: 2,
                           height: 50,
                           color: Colors.white,
                         ),
-                        // Info box for goal weight
                         Expanded(
                           child: _buildInfoBox(goalWeightHeader, goalWeight, goalWeightUnits, context),
                         ),
@@ -128,8 +130,8 @@ class WeightPlanWidget extends StatelessWidget {
   Widget _buildInfoBox(String header, int number, String unit, BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double headerFontSize = screenWidth < 400 ? 8 : 12;
-    final double numberFontSize = screenWidth < 400 ? 20 : 26;
-    final double unitFontSize = screenWidth < 400 ? 12 : 18;
+    final double numberFontSize = screenWidth < 400 ? 20 : 22;
+    final double unitFontSize = screenWidth < 400 ? 12 : 16;
 
     return Container(
       height: 70,
@@ -152,7 +154,7 @@ class WeightPlanWidget extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis, // Prevent overflow
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           SizedBox(height: 4),
@@ -174,7 +176,6 @@ class WeightPlanWidget extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
-                  // color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

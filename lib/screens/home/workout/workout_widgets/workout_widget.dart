@@ -36,9 +36,9 @@ class WorkoutWidget extends StatelessWidget {
   Color _getTypeColor(String type) {
     switch (type) {
       case 'bodyweight':
-        return Colors.blue;
+        return const Color.fromARGB(255, 213, 197, 50);
       case 'strength':
-        return Colors.lime.shade900;
+        return Colors.blue;
       case 'core':
         return Colors.teal;
       default:
@@ -99,17 +99,18 @@ class WorkoutWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: 10,),
                           Text(
                             capitalizeWords(workout),
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 16,
                               fontFamily: 'Poppins-Medium',
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 10),
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
                             decoration: BoxDecoration(
                               color: _getLevelColor(level).withOpacity(0.2),
                               border: Border.all(color: _getLevelColor(level)),
@@ -119,7 +120,7 @@ class WorkoutWidget extends StatelessWidget {
                               capitalizeWords(level),
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
-                                fontSize: 14,
+                                fontSize: 12,
                                 color: _getLevelColor(level),
                               ),
                             ),
@@ -128,16 +129,16 @@ class WorkoutWidget extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
                       decoration: BoxDecoration(
                         color: _getTypeColor(type),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         capitalizeWords(type),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 12,
                           color: Colors.white,
                         ),
                       ),

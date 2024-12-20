@@ -23,13 +23,13 @@ class HeaderWidget extends StatelessWidget {
         children: [
           Text(
             heading,
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 4),
           if (caption != null)
             Text(
               caption!,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(fontSize: 13, color: Colors.grey),
             ),
         ],
       ),

@@ -21,7 +21,7 @@ class InfoContainer extends StatelessWidget {
     final double containerWidth = screenWidth * 0.25; // 30% of screen width
     final double containerHeight = 55; // Fixed height
     final double headerFontSize = screenWidth < 400 ? 10 : 12; // Responsive header font size
-    final double numberFontSize = screenWidth < 400 ? 22 : 24; // Responsive number font size
+    final double numberFontSize = screenWidth < 400 ? 20 : 22; // Responsive number font size
     final double unitFontSize = screenWidth < 400 ? 10 : 12; // Responsive unit font size
 
     return Container(

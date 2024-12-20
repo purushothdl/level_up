@@ -13,8 +13,8 @@ class HeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double headingFontSize = screenWidth < 400 ? 24 : 28; // Responsive font size for heading
-    final double captionFontSize = screenWidth < 400 ? 14 : 16; // Responsive font size for caption
+    final double headingFontSize = screenWidth < 400 ? 20 : 22; // Responsive font size for heading
+    final double captionFontSize = screenWidth < 400 ? 10 : 13; // Responsive font size for caption
 
     return Container(
       decoration: BoxDecoration(

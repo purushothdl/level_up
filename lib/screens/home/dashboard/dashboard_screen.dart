@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:level_up/screens/home/dashboard/attendance_part.dart';
+import '../dashboard/attendance_part.dart';
 import 'weight_track_part.dart';
 import 'app_title_part.dart';
 import './dashboard_widgets/header_widget.dart';
 import 'plan_part.dart';
-
-
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -14,54 +12,63 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Theme(
       data: ThemeData(
-        scaffoldBackgroundColor: Colors.white, // Set the entire Scaffold to have a white background color
+        scaffoldBackgroundColor: Colors.white,
       ),
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false, // Prevents default back button
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
-          elevation: 0, // Optional: remove shadow
+          elevation: 0,
           title: AppTitle(
-            title: 'Level', // Replace with your actual title
-            subtitle: 'Up', // Replace with your subtitle
-            imagePath: 'assets/images/deadlift.jpeg', // Replace with your desired image path
+            title: 'Level',
+            subtitle: 'Up',
+            imagePath: 'assets/images/deadlift.jpeg',
           ),
         ),
-        
         body: SingleChildScrollView(
           padding: EdgeInsets.all(6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height:20),
-              GymPlanWidget(imagePath: 'assets/images/profile/chetan.jpg', name: "Chetan Reddy", planName: "Premium Plan"),
-              SizedBox(height: 1,),
+              const SizedBox(height: 20),
+              GymPlanWidget(
+                planName: "Premium Plan",
+                remainingDays: 15,
+                totalDays: 90,
+              ),
+              const SizedBox(height: 16),
+
+              // Weight Tracker Section
               HeaderWidget(
                 heading: 'Weight Tracker',
-                caption: 
-                '''Monitor your weight trends to understand your progress. ''',
+                caption: '''Monitor your weight trends to understand your progress.''',
               ),
-              
-              SizedBox(
-                height: 290,  // Adjust height as needed
-                child: WeightGraph(),
+              const SizedBox(height: 10),
+
+              // Responsive Graph Section
+              Container(
+                padding: const EdgeInsets.all(0),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9, // Maintain proportional graph
+                  child: StyledWeightGraph(),
+                ),
               ),
 
-              // SizedBox(height: 20),
+              const SizedBox(height: 25),
+
+              // Attendance Section
               HeaderWidget(
                 heading: 'Attendance',
-                caption: 
-                '''Measures consistency and your ability to commit. ''',
+                caption: '''Measures consistency and your ability to commit.''',
               ),
-              SizedBox(height: 40,),
-              AttendancePart(totalDays: 10, presentDays: 8)
+              const SizedBox(height: 10),
+              AttendanceWidget(presentDays: 8, totalDays: 10,),
 
-            
+              const SizedBox(height: 40),
             ],
           ),
-        )
-
-      )
+        ),
+      ),
     );
   }
 }

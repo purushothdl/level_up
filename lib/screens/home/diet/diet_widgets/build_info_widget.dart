@@ -5,10 +5,10 @@ Widget buildInfoItem(String title, String value, String goal, BuildContext conte
   final double screenWidth = MediaQuery.of(context).size.width;
 
   // Set responsive font sizes
-  final double titleFontSize = screenWidth < 400 ? 16 : 18;
-  final double valueFontSize = screenWidth < 400 ? 22 : 26;
+  final double titleFontSize = screenWidth < 400 ? 14 : 15;
+  final double valueFontSize = screenWidth < 400 ? 22 : 24;
   final double unitFontSize = screenWidth < 400 ? 12 : 14;
-  final double goalFontSize = screenWidth < 400 ? 12 : 14;
+  final double goalFontSize = screenWidth < 400 ? 11 : 12;
 
   // Safely split the value into number and unit
   List<String> valueParts = value.split(' ');

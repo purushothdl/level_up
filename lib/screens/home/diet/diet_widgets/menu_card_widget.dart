@@ -21,6 +21,56 @@ class MenuCard extends StatefulWidget {
   @override
   _MenuCardState createState() => _MenuCardState();
 }
+class DashedBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.blue
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+    final path = Path();
+
+    // Top border
+    while (startX < size.width) {
+      path.moveTo(startX, 0);
+      path.lineTo(startX + dashWidth, 0);
+      startX += dashWidth + dashSpace;
+    }
+
+    // Right border
+    double startY = 0;
+    while (startY < size.height) {
+      path.moveTo(size.width, startY);
+      path.lineTo(size.width, startY + dashWidth);
+      startY += dashWidth + dashSpace;
+    }
+
+    // Bottom border
+    startX = 0;
+    while (startX < size.width) {
+      path.moveTo(startX, size.height);
+      path.lineTo(startX + dashWidth, size.height);
+      startX += dashWidth + dashSpace;
+    }
+
+    // Left border
+    startY = 0;
+    while (startY < size.height) {
+      path.moveTo(0, startY);
+      path.lineTo(0, startY + dashWidth);
+      startY += dashWidth + dashSpace;
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
 class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
@@ -144,12 +194,12 @@ class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin
                     ),
                   ),
                 Positioned(
-                  height: 34,
-                  width: 90,
+                  // height: 34,
+                  // width: 100,
                   bottom: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(0.8),
                       borderRadius: BorderRadius.circular(8),
@@ -326,7 +376,7 @@ void _showMenuDialog(BuildContext context, dynamic menuItem, String imagePath) {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.orange,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child: const Text(
@@ -504,25 +554,52 @@ void _showMenuDialog(BuildContext context, dynamic menuItem, String imagePath) {
                           print("Error picking image: $e");
                         }
                       },
-                      child: Container(
-                        width: double.infinity,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey, width: 1),
-                        ),
-                        child: uploadedImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  uploadedImage!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : const Center(child: Text('Click to Upload Image')),
+                      child: Stack(
+                        children: [
+                          // Dashed border behind the container
+                          CustomPaint(
+                            size: Size(double.infinity, 100), // Same size as the container
+                            painter: DashedBorderPainter(),
+                          ),
+                          // Main content of the container
+                          Container(
+                            width: double.infinity,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: uploadedImage != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      uploadedImage!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.image, color: Colors.blue, size: 30),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Click to Upload image',
+                                        style: TextStyle(color: Colors.grey[600]),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Supports: JPG, JPEG2000, PNG',
+                                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ],
                       ),
                     ),
+
+
+
                   ],
                 ),
               ),
@@ -558,7 +635,6 @@ void _showMenuDialog(BuildContext context, dynamic menuItem, String imagePath) {
     },
   );
 }
-
 
 
 

@@ -1,4 +1,4 @@
-name: level_up
+name: LevelUp
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -38,19 +38,26 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  fl_chart: ^0.40.0
+  syncfusion_flutter_charts: ^20.4.38
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   percent_indicator: ^4.2.2 
-  fl_chart: ^0.36.0 
-  syncfusion_flutter_charts: ^20.2.47
+  flutter_launcher_icons: ^0.13.1
+  # fl_chart: ^0.36.0 
+  # syncfusion_flutter_charts: ^20.2.47
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/logo.png"  # Path to your app icon
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -64,6 +71,7 @@ flutter:
     - assets/images/profile/
     - assets/green waves.mp4
     - assets/images/image.png
+    - assets/images/diet/detox/
     # - assets/images/diet/timed_food/food_6am.png
     # - assets/images/diet/timed_food/food_8am.jpeg
     - assets/images/diet/timed_food/food_1pm.jpg

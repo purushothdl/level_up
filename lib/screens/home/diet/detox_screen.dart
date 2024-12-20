@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:level_up/services/user_service.dart';
+import 'package:LevelUp/services/user_service.dart';
 import './diet_widgets/menu_plan_widget.dart';
 
 class DetoxScreen extends StatefulWidget {
