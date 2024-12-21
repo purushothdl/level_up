@@ -50,21 +50,23 @@ class _DetoxScreenState extends State<DetoxScreen> {
         foregroundColor: Colors.black,
       ),
       backgroundColor: Colors.white,
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator()) // Show loader
-          : errorMessage.isNotEmpty
-              ? Center(
-                  child: Text(
-                    errorMessage,
-                    style: const TextStyle(color: Colors.red, fontSize: 16),
-                  ),
-                )
-              : detoxData.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: MenuPlanWidget(timings: detoxData), // Pass detox data to MenuPlanWidget
+      body: SingleChildScrollView(  // Wrap the body in a scroll view
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator()) // Show loader
+              : errorMessage.isNotEmpty
+                  ? Center(
+                      child: Text(
+                        errorMessage,
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
+                      ),
                     )
-                  : const Center(child: Text('No detox plan available.')),
+                  : detoxData.isNotEmpty
+                      ? MenuPlanWidget(timings: detoxData) // Pass detox data to MenuPlanWidget
+                      : const Center(child: Text('No detox plan available.')),
+        ),
+      ),
     );
   }
 }

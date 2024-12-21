@@ -123,6 +123,13 @@ flutter:
       fonts: 
          - asset: assets/fonts/Jersey20-Regular.ttf
 
+    - family: Rubik-Italic
+      fonts: 
+         - asset: assets/fonts/Rubik-Italic.ttf
+
+    - family: Rubik-BoldItalic
+      fonts: 
+         - asset: assets/fonts/Rubik-BoldItalic.ttf
  
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -67,7 +67,7 @@ class WorkoutWidget extends StatelessWidget {
       future: _getImagePath(workout),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
 
         return GestureDetector(
@@ -83,7 +83,7 @@ class WorkoutWidget extends StatelessWidget {
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 2,
                   blurRadius: 5,
-                  offset: Offset(0, 3),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
@@ -94,12 +94,12 @@ class WorkoutWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Image.asset(snapshot.data!, width: 70, height: 60),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 10,),
+                          const SizedBox(height: 10),
                           Text(
                             capitalizeWords(workout),
                             style: const TextStyle(
@@ -174,19 +174,20 @@ class WorkoutWidget extends StatelessWidget {
   }
 
   void _showWorkoutDialog(BuildContext context, String imagePath) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return WorkoutUploadDialog(
-        workout: workout,
-        sets: sets,
-        reps: reps,
-        imagePath: 'assets/images/workouts/$workout.gif',
-      );
-    },
-  );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return WorkoutUploadDialog(
+          workout: workout,  // Pass workout name
+          setsAssigned: sets, // Pass sets assigned
+          repsAssigned: reps, // Pass reps assigned
+          imagePath: imagePath, // Pass workout image path
+        );
+      },
+    );
+  }
 }
-}
+
 
 //   void _showWorkoutDialog(BuildContext context, String imagePath) {
 //     TextEditingController setsController = TextEditingController(text: '$sets');

@@ -18,7 +18,8 @@ class AttendanceWidget extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xff00b0ff), // Blue Background Color
+        // color: const Color(0xff00b0ff), // Blue Background Color
+        color: Colors.black, // Blue Background Color
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -53,7 +54,8 @@ class AttendanceWidget extends StatelessWidget {
           Container(
             width: 1,
             height: 120,
-            color: const Color.fromARGB(255, 13, 95, 162),
+            // color: const Color.fromARGB(255, 13, 95, 162),
+            color: Colors.white
           ),
           // Third Element: Days and Button (Takes 2x Space)
           Expanded(
@@ -112,7 +114,7 @@ class AttendanceWidget extends StatelessWidget {
           CircularProgressIndicator(
             value: percentage / 100,
             strokeWidth: 8,
-            color: Colors.white,
+            color: const Color(0xff04fc04),
             backgroundColor: Colors.white24,
           ),
           Center(
