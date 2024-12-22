@@ -5,13 +5,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 class UserService {
   static Map<String, dynamic>? _userDetails; // Cache variable
 
-  // Fetch user details if not already fetched
+  // Fetch user details (from cache or network)
   static Future<Map<String, dynamic>> getUserDetails() async {
     if (_userDetails != null) {
       print("Using cached user details");
-      return _userDetails!; // Return cached data
+      return _userDetails!;
     }
+    return fetchFreshUserDetails(); // Fetch fresh data if cache is empty
+  }
 
+  // Fetch fresh user details from the server and update the cache
+  static Future<Map<String, dynamic>> fetchFreshUserDetails() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
     final String? userId = prefs.getString('user_id');
@@ -29,7 +33,7 @@ class UserService {
     );
 
     if (response.statusCode == 200) {
-      _userDetails = json.decode(response.body); // Cache user details
+      _userDetails = json.decode(response.body); // Update cache with fresh data
       print("User details fetched and cached: $_userDetails");
       return _userDetails!;
     } else {
@@ -37,8 +41,9 @@ class UserService {
     }
   }
 
-  // Method to clear cached data (e.g., on logout)
+  // Clear cached data
   static void clearCache() {
     _userDetails = null;
   }
 }
+

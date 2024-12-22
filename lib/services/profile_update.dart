@@ -12,6 +12,7 @@ class ProfileUpdateService {
     String? name,
     String? email,
     String? phoneNo,
+    String? occupation,
     String? address,
     int? height, // Correctly using int? here
     File? profileImage,
@@ -32,6 +33,7 @@ class ProfileUpdateService {
     if (name != null) request.fields['name'] = name;
     if (phoneNo != null) request.fields['phone_no'] = phoneNo;
     if (address != null) request.fields['address'] = address;
+    if (occupation != null) request.fields['occupation'] = occupation;
     if (height != null) request.fields['height'] = height.toString(); // Convert to string here
 
     if (profileImage != null) {

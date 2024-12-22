@@ -207,7 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -240,7 +240,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12,
             color: Colors.black54,
             fontWeight: FontWeight.w500,
           ),

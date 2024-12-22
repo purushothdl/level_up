@@ -96,10 +96,10 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
         print('Upload success: $responseJson');
         
         // Show success message pop-up
-        _showMessageDialog('Upload Successful!', 'Your workout data has been successfully uploaded.', Colors.green, true);
+        _showMessageDialog('Upload Successful!', 'Your this workout log has been successfully uploaded.', Colors.green, true);
       } else {
         print('Upload failed with status: ${response.statusCode}');
-        _showMessageDialog('Upload Failed!', 'There was an error uploading your workout data. Please try again.', Colors.red, false);
+        _showMessageDialog('Upload Failed!', 'This workout log has already been uploaded for today! Please try again tomorrow.', Colors.red, false);
       }
     } catch (e) {
       print('Error during upload: $e');

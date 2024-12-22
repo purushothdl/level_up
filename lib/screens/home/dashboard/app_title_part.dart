@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 
 class AppTitle extends StatelessWidget {
-  final String title;           // Title text
-  final String subtitle;        // Subtitle text
-  final String imagePath;       // Image path
-  final Color borderColor;      // Border color
+  final String title;
+  final String subtitle;
+  final String imagePath;
+  final Color borderColor;
+  final Function(int)? updateIndex;  // Add this parameter
 
   const AppTitle({
     super.key,
     required this.title,
     required this.subtitle,
     required this.imagePath,
-    this.borderColor = const Color.fromARGB(255, 219, 219, 219), // Default border color
+    this.borderColor = const Color.fromARGB(255, 202, 201, 201),
+    this.updateIndex,  // Add this to constructor
   });
 
   @override
@@ -40,17 +42,24 @@ class AppTitle extends StatelessWidget {
         const Spacer(),
         Padding(
           padding: const EdgeInsets.only(right: 16),
-          child: Container(
-            width: 60, // Adjust as needed
-            height: 60, // Adjust as needed
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: borderColor, width: 3), // Custom border color
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                imagePath, // Use the passed image path
-                fit: BoxFit.cover, // Ensure the image covers the circular area
+          child: GestureDetector(
+            onTap: () {
+              if (updateIndex != null) {
+                updateIndex!(3);  // Navigate to UserScreen (index 3)
+              }
+            },
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: borderColor, width: 2),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),

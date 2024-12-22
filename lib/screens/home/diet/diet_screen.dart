@@ -9,7 +9,8 @@ import './diet_widgets/header_widget.dart';
 import './diet_widgets/image_over_lay_button.dart';
 
 class DietScreen extends StatefulWidget {
-  const DietScreen({super.key});
+  final Function(int) updateIndex; // Accept the callback
+  const DietScreen({super.key, required this.updateIndex});
 
   @override
   DietScreenState createState() => DietScreenState();
@@ -65,10 +66,7 @@ Future<void> _loadDietData() async {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
+            widget.updateIndex(0); // Use the callback to switch tabs instead of navigation
           },
         ),
       ),

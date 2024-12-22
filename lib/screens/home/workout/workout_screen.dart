@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:LevelUp/services/user_service.dart';
-import '../home_screen.dart';
+import '../diet/diet_widgets/header_widget.dart';
 import 'weight_plan_part.dart';
 import 'workout_part.dart';
-import '../diet/diet_widgets/header_widget.dart';
+import '../home_screen.dart';
 
 class WorkoutScreen extends StatefulWidget {
-  const WorkoutScreen({super.key});
+  final Function(int) updateIndex; // Accept the callback
+
+  const WorkoutScreen({super.key, required this.updateIndex});
 
   @override
   State<WorkoutScreen> createState() => _WorkoutScreenState();
@@ -21,18 +23,25 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   @override
   void initState() {
     super.initState();
-    _loadWorkoutData();
+    _loadWorkoutData(useCache: true); // Use cached data first
   }
 
-  Future<void> _loadWorkoutData() async {
+  Future<void> _loadWorkoutData({bool useCache = true}) async {
     try {
-      final userDetails = await UserService.getUserDetails();
+      final userDetails = useCache 
+          ? await UserService.getUserDetails() // Use cached data if available
+          : await UserService.fetchFreshUserDetails(); // Force fresh data
+      
+      if (!mounted) return;
+      
       setState(() {
         workoutData = userDetails['user']['workout_plan']?['workout_plan_details']?['schedule'] ?? {};
         weightPlanData = userDetails['user']['workout_plan'] ?? {};
         isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
+      
       setState(() {
         errorMessage = 'Failed to load workout data.';
         isLoading = false;
@@ -56,10 +65,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
+           widget.updateIndex(0); // Use the callback to switch tabs instead of navigation
           },
         ),
       ),
@@ -113,5 +119,3 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     );
   }
 }
-
-

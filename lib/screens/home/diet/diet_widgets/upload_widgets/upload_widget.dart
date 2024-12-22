@@ -127,11 +127,10 @@ Future<void> _uploadDietLog() async {
         _showMessageDialog('Upload Successful!', 'Your diet log has been successfully uploaded.', Colors.green, true);
       }
     } else {
-      print('Upload failed with status: ${response.statusCode}');
       
       // Show failure message pop-up
       if (mounted) {
-        _showMessageDialog('Upload Failed!', 'There was an error uploading your diet log. Please try again.', Colors.red, false);
+        _showMessageDialog('Upload Failed!', 'Diet log for this item has already been uploaded today! Please try again tomorrow.', Colors.red, false);
       }
     }
   } catch (e) {

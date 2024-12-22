@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../services/user_service.dart'; // Import your UserService
 import 'edit_profile.dart'; // Import the EditProfileScreen
+import '../home_screen.dart';
+
 
 class UserScreen extends StatefulWidget {
+  final Function(int) updateIndex; // Accept the callback
+  const UserScreen({super.key, required this.updateIndex});
+
   @override
   _UserScreenState createState() => _UserScreenState();
 }
@@ -41,33 +46,44 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 50,
-        backgroundColor: Colors.white,
-        title: Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: isLoading || userData == null
-                ? null
-                : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfileScreen(
-                          userData: userData!,
-                          onSave: _updateUserData,
-                        ),
-                      ),
-                    );
-                  },
-          ),
-        ],
-      ),
+appBar: AppBar(
+  toolbarHeight: 50,
+  backgroundColor: Colors.white,
+  title: Text(
+    'Profile',
+    style: TextStyle(
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+      fontSize: 20,
+    ),
+  ),
+  centerTitle: true,
+  leading: IconButton( // Place the back arrow here
+    icon: const Icon(Icons.arrow_back, color: Colors.black),
+    onPressed: () {
+      widget.updateIndex(0);
+    },
+  ),
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.edit),
+      onPressed: isLoading || userData == null
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfileScreen(
+                    userData: userData!,
+                    onSave: _updateUserData,
+                  ),
+                ),
+              );
+            },
+    ),
+  ],
+),
+
       backgroundColor: Colors.white,
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -289,7 +305,7 @@ class InfoColumn extends StatelessWidget {
         SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
         ),
       ],
     );
