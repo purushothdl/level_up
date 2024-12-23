@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:LevelUp/screens/home/home_screen.dart';
 import 'package:LevelUp/services/user_service.dart';
@@ -9,7 +10,7 @@ import './diet_widgets/header_widget.dart';
 import './diet_widgets/image_over_lay_button.dart';
 
 class DietScreen extends StatefulWidget {
-  final Function(int) updateIndex; // Accept the callback
+  final Function(int) updateIndex;
   const DietScreen({super.key, required this.updateIndex});
 
   @override
@@ -17,40 +18,55 @@ class DietScreen extends StatefulWidget {
 }
 
 class DietScreenState extends State<DietScreen> {
-  Map<String, dynamic> dietData = {}; // To hold parsed JSON data
-  bool isLoading = true; // Track loading state
-  String errorMessage = ''; // Track errors if fetching fails
+  Map<String, dynamic> dietData = {};
+  bool isLoading = true;
+  String errorMessage = '';
+  late StreamSubscription _userDataSubscription;
 
   @override
   void initState() {
     super.initState();
-    _loadDietData(); // Fetch diet plan on screen load
-  }
-
-Future<void> _loadDietData() async {
-  try {
-    final userDetails = await UserService.getUserDetails(); // Fetch cached data or API call
-
-    if (userDetails['user'] != null && userDetails['user']['diet_plan'] != null) {
-      setState(() {
-        dietData = userDetails['user']['diet_plan'];
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        errorMessage = 'No diet plan found.';
-        isLoading = false;
-      });
-    }
-  } catch (e) {
-    setState(() {
-      errorMessage = 'Failed to load diet plan. Please try again.';
-      isLoading = false;
+    _loadDietData();
+    
+    // Subscribe to user data updates
+    _userDataSubscription = UserService.userDataStream.listen((userData) {
+      if (mounted) {
+        setState(() {
+          dietData = userData['user']['diet_plan'] ?? {};
+        });
+      }
     });
-    print("Error: $e");
   }
-}
 
+  Future<void> _loadDietData() async {
+    try {
+      final userDetails = await UserService.getUserDetails();
+
+      if (userDetails['user'] != null && userDetails['user']['diet_plan'] != null) {
+        setState(() {
+          dietData = userDetails['user']['diet_plan'];
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = 'No diet plan found.';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Failed to load diet plan. Please try again.';
+        isLoading = false;
+      });
+      print("Error: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _userDataSubscription.cancel();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,7 +125,7 @@ Future<void> _loadDietData() async {
                         ),
                         SizedBox(height: 4),
                         ImageOverlayButton(
-                          imagePath: 'assets/images/diet/detox/test_detox.gif',
+                          imagePath: 'assets/image.png',
                           buttonLabel: 'Detox',
                           targetScreen: DetoxScreen(),
                         ),

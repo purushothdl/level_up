@@ -112,7 +112,7 @@ class _StyledWeightGraphState extends State<StyledWeightGraph> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.asset(
-                          'assets/images/diet/detox/detox_overlay.gif', // Replace with your image path
+                          'assets/image.png', // Replace with your image path
                           width: double.infinity,
                           height: 230,
                           fit: BoxFit.cover,
@@ -158,7 +158,7 @@ class _StyledWeightGraphState extends State<StyledWeightGraph> {
                         ),
                       ),
                       Positioned(
-                        right: 22,
+                        right: 16,
                         top: 16,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

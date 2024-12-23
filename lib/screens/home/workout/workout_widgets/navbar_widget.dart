@@ -19,47 +19,59 @@ class NavbarWidget extends StatefulWidget {
 class _NavbarWidgetState extends State<NavbarWidget> {
   @override
   Widget build(BuildContext context) {
-    // Get the screen dimensions using MediaQuery
     final Size screenSize = MediaQuery.of(context).size;
 
-    // Set responsive sizes based on screen height
-    final double containerHeight = screenSize.height < 600 ? 40 : 46; // Navbar height
-    final double fontSize = screenSize.height < 600 ? 14 : 16; // Font size based on screen height
+    // Responsive sizes
+    final double containerHeight = screenSize.height < 600 ? 40 : 46;
+    final double fontSize = screenSize.height < 600 ? 14 : 16;
 
     return Container(
       height: containerHeight,
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 241, 241, 241),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color.fromARGB(255, 237, 237, 237),
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(
+          color: const Color.fromARGB(255, 183, 182, 182),
+          width: 0.2,
+        ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: widget.values.map((value) {
           int index = widget.values.indexOf(value);
+
+          bool isSelected = widget.selectedIndex == index;
+
           return Flexible(
             child: GestureDetector(
               onTap: () {
                 widget.onTap(index);
               },
-              child: Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 0), // Shorter padding for blue background
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(vertical: 3),
                 decoration: BoxDecoration(
-                  color: widget.selectedIndex == index
-                      ? Colors.blue
-                      : const Color.fromARGB(255, 240, 240, 240),
-                  borderRadius: BorderRadius.circular(10),
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  border: isSelected
+                      ? Border.all(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          width: 2,
+                        )
+                      : null,
                 ),
-                margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                alignment: Alignment.center,
                 child: Text(
                   value,
                   style: TextStyle(
-                    fontSize: fontSize, // Responsive font size
-                    fontWeight: FontWeight.w500,
-                    color: widget.selectedIndex == index
-                        ? Colors.white
-                        : const Color.fromARGB(255, 23, 23, 23),
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected
+                        ? Colors.black
+                        : const Color.fromARGB(255, 128, 128, 128),
                   ),
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:LevelUp/services/user_service.dart';
 import '../diet/diet_widgets/header_widget.dart';
@@ -6,7 +7,7 @@ import 'workout_part.dart';
 import '../home_screen.dart';
 
 class WorkoutScreen extends StatefulWidget {
-  final Function(int) updateIndex; // Accept the callback
+  final Function(int) updateIndex;
 
   const WorkoutScreen({super.key, required this.updateIndex});
 
@@ -19,18 +20,29 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   Map<String, dynamic> weightPlanData = {};
   bool isLoading = true;
   String errorMessage = '';
+  late StreamSubscription _userDataSubscription;
 
   @override
   void initState() {
     super.initState();
-    _loadWorkoutData(useCache: true); // Use cached data first
+    _loadWorkoutData(useCache: true);
+    
+    // Subscribe to user data updates
+    _userDataSubscription = UserService.userDataStream.listen((userData) {
+      if (mounted) {
+        setState(() {
+          workoutData = userData['user']['workout_plan']?['workout_plan_details']?['schedule'] ?? {};
+          weightPlanData = userData['user']['workout_plan'] ?? {};
+        });
+      }
+    });
   }
 
   Future<void> _loadWorkoutData({bool useCache = true}) async {
     try {
       final userDetails = useCache 
-          ? await UserService.getUserDetails() // Use cached data if available
-          : await UserService.fetchFreshUserDetails(); // Force fresh data
+          ? await UserService.getUserDetails()
+          : await UserService.fetchFreshUserDetails();
       
       if (!mounted) return;
       
@@ -48,6 +60,12 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       });
       print("Error loading workout data: $e");
     }
+  }
+
+  @override
+  void dispose() {
+    _userDataSubscription.cancel();
+    super.dispose();
   }
 
   @override

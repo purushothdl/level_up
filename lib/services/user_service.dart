@@ -1,9 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
-  static Map<String, dynamic>? _userDetails; // Cache variable
+  static Map<String, dynamic>? _userDetails;
+  
+  // Create a StreamController to broadcast user data updates
+  static final _userDataController = StreamController<Map<String, dynamic>>.broadcast();
+  
+  // Expose the stream for listeners
+  static Stream<Map<String, dynamic>> get userDataStream => _userDataController.stream;
 
   // Fetch user details (from cache or network)
   static Future<Map<String, dynamic>> getUserDetails() async {
@@ -11,10 +18,10 @@ class UserService {
       print("Using cached user details");
       return _userDetails!;
     }
-    return fetchFreshUserDetails(); // Fetch fresh data if cache is empty
+    return fetchFreshUserDetails();
   }
 
-  // Fetch fresh user details from the server and update the cache
+  // Fetch fresh user details and notify listeners
   static Future<Map<String, dynamic>> fetchFreshUserDetails() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
@@ -33,7 +40,9 @@ class UserService {
     );
 
     if (response.statusCode == 200) {
-      _userDetails = json.decode(response.body); // Update cache with fresh data
+      _userDetails = json.decode(response.body);
+      // Notify all listeners of the new data
+      _userDataController.add(_userDetails!);
       print("User details fetched and cached: $_userDetails");
       return _userDetails!;
     } else {
@@ -45,5 +54,9 @@ class UserService {
   static void clearCache() {
     _userDetails = null;
   }
-}
 
+  // Dispose of the StreamController when no longer needed
+  static void dispose() {
+    _userDataController.close();
+  }
+}

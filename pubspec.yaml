@@ -27,6 +27,7 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+
 dependencies:
   flutter:
     sdk: flutter
@@ -40,12 +41,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   fl_chart: ^0.40.0
   syncfusion_flutter_charts: ^20.4.38
+  provider: ^6.1.2  # Make sure to use the latest version
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   percent_indicator: ^4.2.2 
   flutter_launcher_icons: ^0.13.1
+
   # fl_chart: ^0.36.0 
   # syncfusion_flutter_charts: ^20.2.47
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -54,6 +57,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+
 flutter_icons:
   android: true
   ios: true
@@ -69,7 +73,6 @@ flutter:
     - assets/
     - assets/icons/logo.png
     - assets/images/profile/
-    - assets/green waves.mp4
     - assets/images/image.png
     - assets/images/diet/detox/
     # - assets/images/diet/timed_food/food_6am.png
@@ -85,8 +88,7 @@ flutter:
     - assets/images/diet/detox/detox.jpg
     - assets/images/diet/detox/8_am/
     - assets/images/diet/detox/3_pm/
-    - assets/images/deadlift.jpeg
-    
+
     
     - assets/images/workouts/
 

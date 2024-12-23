@@ -4,7 +4,6 @@ class AppTitle extends StatelessWidget {
   final String title;
   final String subtitle;
   final String imagePath;
-  final Color borderColor;
   final Function(int)? updateIndex;  // Add this parameter
 
   const AppTitle({
@@ -12,7 +11,6 @@ class AppTitle extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.imagePath,
-    this.borderColor = const Color.fromARGB(255, 202, 201, 201),
     this.updateIndex,  // Add this to constructor
   });
 
@@ -53,7 +51,7 @@ class AppTitle extends StatelessWidget {
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: borderColor, width: 2),
+                border: Border.all(color: Colors.white, width: 1),
               ),
               child: ClipOval(
                 child: Image.asset(

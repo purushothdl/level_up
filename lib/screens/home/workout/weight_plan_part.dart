@@ -40,8 +40,8 @@ class WeightPlanWidget extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            width: double.infinity,
-            height: 150,
+            width: double.infinity,  
+            height: 165,
             child: Stack(
               children: [
                 Positioned.fill(

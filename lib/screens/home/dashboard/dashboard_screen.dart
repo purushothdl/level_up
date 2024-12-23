@@ -1,15 +1,18 @@
+// import 'package:LevelUp/services/user_provider.dart';
 import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http; // To make the HTTP request
 import 'dart:convert'; // To decode JSON
 
 import '../dashboard/attendance_part.dart';
 import 'weight_track_part.dart';
+import 'weight_upload_part.dart';
 import 'app_title_part.dart';
 import './dashboard_widgets/header_widget.dart';
 import 'plan_part.dart';
 import 'package:LevelUp/services/user_service.dart';
-import '../home_screen.dart';
+// import '../home_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int) updateIndex;
@@ -156,7 +159,12 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
                             totalDays: userData['subscription_plan']['duration'] ?? 0,
                             lastDate: userData['subscription_plan']['end_date'] ?? "Unknown",
                           ),
-                        const SizedBox(height: 16),
+                        // const SizedBox(height: 16),
+                        HeaderWidget(
+                          heading: 'Upload Weight',
+                          caption: 'Document your progress by uploading weights weekly.',),
+                        WeightTrackerWidget(),
+                        const SizedBox(height: 16,),
                         HeaderWidget(
                           heading: 'Weight Tracker',
                           caption: 'Monitor your weight trends to understand your progress.',

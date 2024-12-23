@@ -1,11 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../services/user_service.dart'; // Import your UserService
-import 'edit_profile.dart'; // Import the EditProfileScreen
+import '../../../services/user_service.dart';
+import 'edit_profile.dart';
 import '../home_screen.dart';
 
-
 class UserScreen extends StatefulWidget {
-  final Function(int) updateIndex; // Accept the callback
+  final Function(int) updateIndex;
   const UserScreen({super.key, required this.updateIndex});
 
   @override
@@ -14,33 +14,60 @@ class UserScreen extends StatefulWidget {
 
 class _UserScreenState extends State<UserScreen> {
   Map<String, dynamic>? userData;
+  Map<String, dynamic>? user;
   bool isLoading = true;
+  late StreamSubscription _userDataSubscription;
 
   @override
   void initState() {
     super.initState();
     fetchUserData();
+    
+    // Subscribe to user data updates
+    _userDataSubscription = UserService.userDataStream.listen((data) {
+      if (mounted) {
+        setState(() {
+          userData = data;
+          user = data['user'];
+        });
+      }
+    });
   }
 
   Future<void> fetchUserData() async {
     try {
       final data = await UserService.getUserDetails();
-      setState(() {
-        userData = data;
-        isLoading = false;
-      });
+      print("Fetched user data: $data");
+      if (mounted) {
+        setState(() {
+          userData = data;
+          user = data['user'];
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
       print("Error fetching user data: $e");
     }
   }
 
   void _updateUserData(Map<String, dynamic> updatedData) {
-    setState(() {
-      userData = updatedData;
-    });
+    if (mounted) {
+      setState(() {
+        userData = updatedData;
+        user = updatedData['user'];
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _userDataSubscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -87,7 +114,7 @@ appBar: AppBar(
       backgroundColor: Colors.white,
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : userData == null
+          : user == null
               ? Center(child: Text("Failed to load user data"))
               : SingleChildScrollView(
                   child: Padding(
@@ -122,12 +149,12 @@ appBar: AppBar(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    userData?['user']['name'] ?? "N/A",
+                                    user?['name'] ?? "N/A",
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    userData?['user']['role'] ?? "N/A",
+                                    user?['role'] ?? "N/A",
                                     style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold),
                                   ),
                                 ],
@@ -147,21 +174,21 @@ appBar: AppBar(
                               children: [
                                 InfoColumn(
                                   title: 'Age',
-                                  value: userData?['user']?['age'] != null
-                                    ? '${userData?['user']?['age']} yrs'
+                                  value: user?['age'] != null
+                                    ? '${user??['age']} yrs'
                                     : "N/A",
                                 ),
                                 InfoColumn(
                                   title: 'Height',
-                                  value: userData?['user']?['height'] != null 
-                                    ? '${userData?['user']?['height']} cm' 
+                                  value: user?['height'] != null 
+                                    ? '${user?['height']} cm' 
                                     : "N/A",
                                 ),
 
                                 InfoColumn(
                                   title: 'Weight',
-                                  value: userData?['user']?['weight'] != null 
-                                    ? '${userData?['user']?['weight']} kg' 
+                                  value: user?['weight'] != null 
+                                    ? '${user?['weight']} kg' 
                                     : "N/A",
                                 ),
                               ],
@@ -179,25 +206,25 @@ appBar: AppBar(
                               ContactRow(
                                 icon: Icons.email,
                                 label: 'Email',
-                                value: userData?['user']['email'] ?? "N/A",
+                                value: user?['email'] ?? "N/A",
                                 iconColor: Colors.orange,
                               ),
                               ContactRow(
                                 icon: Icons.phone,
                                 label: 'Phone No',
-                                value: userData?['user']['phone_no'] ?? "N/A",
+                                value: user?['phone_no'] ?? "N/A",
                                 iconColor: Colors.green,
                               ),
                               ContactRow(
                                 icon: Icons.work,
                                 label: 'Occupation',
-                                value: userData?['user']['occupation'] ?? "N/A",
+                                value: user?['occupation'] ?? "N/A",
                                 iconColor: Colors.blue,
                               ),
                               ContactRow(
                                 icon: Icons.location_on,
                                 label: 'Address',
-                                value: userData?['user']['address'] ?? "N/A",
+                                value: user?['address'] ?? "N/A",
                                 iconColor: Colors.red,
                               ),
                             ],
@@ -214,31 +241,31 @@ appBar: AppBar(
                               ContactRow(
                                 icon: Icons.favorite,
                                 label: 'Heart Trouble',
-                                value: (userData?['user']['screening']?['heart_trouble'] ?? "N/A"),
+                                value: (user?['screening']?['heart_trouble'] ?? "N/A"),
                                 iconColor: Colors.red,
                               ),
                               ContactRow(
                                 icon: Icons.add_alert,
                                 label: 'Chest Pain',
-                                value: (userData?['user']['screening']?['chest_pain'] ?? "N/A"),
+                                value: (user?['screening']?['chest_pain'] ?? "N/A"),
                                 iconColor: Colors.orange,
                               ),
                               ContactRow(
                                 icon: Icons.accessibility_new,
                                 label: 'Back/Knee Problems',
-                                value: (userData?['user']['screening']?['back_or_knees_problem'] ??  "N/A"),
+                                value: (user?['screening']?['back_or_knees_problem'] ??  "N/A"),
                                 iconColor: Colors.blue,
                               ),
                               ContactRow(
                                 icon: Icons.restaurant,
                                 label: 'Food Preferences',
-                                value: userData?['user']['screening']?['food_preferences'] ?? "N/A",
+                                value: user?['screening']?['food_preferences'] ?? "N/A",
                                 iconColor: Colors.purple,
                               ),
                               ContactRow(
                                 icon: Icons.warning,
                                 label: 'Food Allergies',
-                                value: userData?['user']['screening']?['food_allergies'] ?? "None",
+                                value: user?['screening']?['food_allergies'] ?? "None",
                                 iconColor: Colors.redAccent,
                               ),
                             ],
