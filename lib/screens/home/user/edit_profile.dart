@@ -16,6 +16,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController nameController;
   late TextEditingController phoneController;
+  late TextEditingController ageController;
   late TextEditingController heightController;
   late TextEditingController occupationController;
   late TextEditingController addressController;
@@ -27,6 +28,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     nameController = TextEditingController(text: widget.userData['user']['name'] ?? '');
     phoneController = TextEditingController(text: widget.userData['user']['phone_no'] ?? '');
+    ageController = TextEditingController(text: widget.userData['user']['age'].toString());
     heightController = TextEditingController(text: widget.userData['user']['height'].toString());
     occupationController = TextEditingController(text: widget.userData['user']['occupation'] ?? '');
     addressController = TextEditingController(text: widget.userData['user']['address'] ?? '');
@@ -162,6 +164,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       icon: Icons.phone,
                     ),
                     _buildTextField(
+                      label: 'Age',
+                      controller: ageController,
+                      icon: Icons.person,
+                    ),
+                    _buildTextField(
                       label: 'Height',
                       controller: heightController,
                       icon: Icons.height,
@@ -190,7 +197,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     var result = await ProfileUpdateService.updateProfile(
                       name: nameController.text,
                       phoneNo: phoneController.text,
+                      age: int.tryParse(ageController.text),
                       height: int.tryParse(heightController.text),
+                      occupation: occupationController.text,
                       address: addressController.text,
                       profileImage: _profileImage,
                       context: context,

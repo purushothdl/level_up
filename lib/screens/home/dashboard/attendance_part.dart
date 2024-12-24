@@ -402,3 +402,26 @@ class _AttendanceButtonState extends State<AttendanceButton>
     );
   }
 }
+
+
+/// Fallback UI when weight data is empty
+Widget buildAttendanceFallbackUI() {
+  return Container(
+    height: 130,
+    width: double.infinity,
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    decoration: BoxDecoration(
+      color: Colors.black,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    alignment: Alignment.center, // Center the text
+    child: Text(
+      'No Attendance data available',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 16.0,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
+}

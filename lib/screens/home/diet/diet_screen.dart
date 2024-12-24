@@ -89,8 +89,8 @@ class DietScreenState extends State<DietScreen> {
       backgroundColor: Colors.white,
       body: isLoading
           ? Center(child: CircularProgressIndicator()) // Show loader while fetching data
-          : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage)) // Show error if any
+          : (dietData == null || dietData.isEmpty) // Handle null or empty diet plan
+              ? buildDietFallbackUI() // Show error if any
               : SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -143,4 +143,29 @@ class DietScreenState extends State<DietScreen> {
                 ),
     );
   }
+}
+
+
+/// Fallback UI when weight data is empty
+Widget buildDietFallbackUI() {
+  return Center( // Centers the entire container within its parent
+    child: Container(
+      height: 130,
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: Alignment.center, // Center the text within the container
+      child: Text(
+        'No Diet data available',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+  );
 }

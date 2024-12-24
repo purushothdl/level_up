@@ -1,6 +1,29 @@
 import 'package:flutter/material.dart';
 import './utils/dashboard_utils.dart';
 
+class FallbackUI extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      margin: EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        'No subscription plan found',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
 
 class GymPlanWidget extends StatelessWidget {
   final String planName;
@@ -229,6 +252,8 @@ class GymPlanWidget extends StatelessWidget {
       ),
     );
   }
+
+  
 
   // // Helper function to format DateTime as "23rd Jan"
   // String _formatDate(DateTime date) {

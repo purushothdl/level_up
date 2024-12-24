@@ -14,6 +14,7 @@ class ProfileUpdateService {
     String? phoneNo,
     String? occupation,
     String? address,
+    int? age,
     int? height, // Correctly using int? here
     File? profileImage,
     required BuildContext context,
@@ -34,6 +35,7 @@ class ProfileUpdateService {
     if (phoneNo != null) request.fields['phone_no'] = phoneNo;
     if (address != null) request.fields['address'] = address;
     if (occupation != null) request.fields['occupation'] = occupation;
+    if (age != null) request.fields['age'] = age.toString();
     if (height != null) request.fields['height'] = height.toString(); // Convert to string here
 
     if (profileImage != null) {

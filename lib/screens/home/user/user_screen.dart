@@ -175,7 +175,7 @@ appBar: AppBar(
                                 InfoColumn(
                                   title: 'Age',
                                   value: user?['age'] != null
-                                    ? '${user??['age']} yrs'
+                                    ? '${user?['age']} yrs'
                                     : "N/A",
                                 ),
                                 InfoColumn(

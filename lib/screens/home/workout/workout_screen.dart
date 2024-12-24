@@ -25,8 +25,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   @override
   void initState() {
     super.initState();
-    _loadWorkoutData(useCache: true);
-    
+    _loadWorkoutData();
+
     // Subscribe to user data updates
     _userDataSubscription = UserService.userDataStream.listen((userData) {
       if (mounted) {
@@ -38,27 +38,28 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     });
   }
 
-  Future<void> _loadWorkoutData({bool useCache = true}) async {
+  Future<void> _loadWorkoutData() async {
     try {
-      final userDetails = useCache 
-          ? await UserService.getUserDetails()
-          : await UserService.fetchFreshUserDetails();
-      
-      if (!mounted) return;
-      
-      setState(() {
-        workoutData = userDetails['user']['workout_plan']?['workout_plan_details']?['schedule'] ?? {};
-        weightPlanData = userDetails['user']['workout_plan'] ?? {};
-        isLoading = false;
-      });
+      final userDetails = await UserService.getUserDetails();
+
+      if (userDetails['user'] != null && userDetails['user']['workout_plan']['workout_plan_details'] != null) {
+        setState(() {
+          workoutData = userDetails['user']['workout_plan']?['workout_plan_details']?['schedule'] ?? {};
+          weightPlanData = userDetails['user']['workout_plan'];
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = 'No workout plan found.';
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      if (!mounted) return;
-      
       setState(() {
-        errorMessage = 'Failed to load workout data.';
+        errorMessage = 'Failed to load workout plan. Please try again.';
         isLoading = false;
       });
-      print("Error loading workout data: $e");
+      print("Error: $e");
     }
   }
 
@@ -83,19 +84,15 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-           widget.updateIndex(0); // Use the callback to switch tabs instead of navigation
+            widget.updateIndex(0); // Use the callback to switch tabs instead of navigation
           },
         ),
       ),
+      backgroundColor: Colors.white,
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-              ? Center(
-                  child: Text(
-                    errorMessage,
-                    style: const TextStyle(color: Colors.red, fontSize: 16),
-                  ),
-                )
+          ? const Center(child: CircularProgressIndicator()) // Show loader while fetching data
+          : (weightPlanData['workout_plan_details'] == null || weightPlanData.isEmpty) // Handle null or empty workout plan
+              ? buildWorkoutFallbackUI() // Show fallback UI if no data is available
               : SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -112,12 +109,12 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                         ),
                         const SizedBox(height: 0),
                         WeightPlanWidget(
-                          planName: weightPlanData['workout_plan_details']['workout_plan_name'],
+                          planName: weightPlanData['workout_plan_details']?['workout_plan_name'] ?? 'No Plan Name', // Add default
                           currentWeightHeader: 'Current Weight',
-                          currentWeight: weightPlanData['current_weight']?.toInt() ?? 70,
+                          currentWeight: weightPlanData['current_weight']?.toInt() ?? 0, // Default to 0
                           currentWeightUnits: 'Kg',
                           goalWeightHeader: 'Goal Weight',
-                          goalWeight: weightPlanData['end_weight']?.toInt() ?? 60.0,
+                          goalWeight: weightPlanData['end_weight']?.toInt() ?? 0, // Default to 0
                           goalWeightUnits: 'Kg',
                         ),
                         const SizedBox(height: 8),
@@ -128,12 +125,70 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                             caption: "Weekly Exercises curated by Trainer.",
                           ),
                         ),
-                        WorkOutPart(workoutData: workoutData),
+                        if (workoutData.isNotEmpty)
+                          WorkOutPart(workoutData: workoutData)
+                        else
+                          Center(
+                            child: Text(
+                              'No exercise schedule available',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
                 ),
-      backgroundColor: Colors.white,
     );
   }
 }
+
+/// Fallback UI when workout data is empty
+Widget buildWorkoutFallbackUI() {
+  return Center(
+    child: Container(
+      height: 130,
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        'No Workout data available',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+  );
+}
+
+
+// /// Fallback UI when weight data is empty
+// Widget buildWorkoutFallbackUI() {
+//   return Container(
+//     height: 130,
+//     width: double.infinity,
+//     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//     decoration: BoxDecoration(
+//       color: Colors.white,
+//       borderRadius: BorderRadius.circular(16),
+//     ),
+//     alignment: Alignment.center, // Center the text
+//     child: Text(
+//       'No Workout data available',
+//       style: TextStyle(
+//         color: Colors.black,
+//         fontSize: 16.0,
+//         fontWeight: FontWeight.bold,
+//       ),
+//     ),
+//   );
+// }

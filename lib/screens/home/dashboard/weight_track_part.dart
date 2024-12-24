@@ -73,7 +73,7 @@ class _StyledWeightGraphState extends State<StyledWeightGraph> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: weightData.isEmpty
-          ? Center(child: CircularProgressIndicator())  // Show loading spinner if data is empty
+          ? buildWeightFallbackUI()  // Show loading spinner if data is empty
           : GestureDetector(
               onHorizontalDragUpdate: (details) {
                 setState(() {
@@ -218,4 +218,27 @@ class WeightData {
   final double weight;
 
   WeightData(this.date, this.weight);
+}
+
+
+/// Fallback UI when weight data is empty
+Widget buildWeightFallbackUI() {
+  return Container(
+    height: 230,
+    width: double.infinity,
+    margin: const EdgeInsets.symmetric(horizontal: 16),
+    decoration: BoxDecoration(
+      color: Colors.black,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    alignment: Alignment.center, // Center the text
+    child: Text(
+      'No weight data available',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 16.0,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
 }

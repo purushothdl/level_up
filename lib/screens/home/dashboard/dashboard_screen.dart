@@ -158,7 +158,10 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
                             remainingDays: userData['subscription_plan']['remaining_days'] ?? 0,
                             totalDays: userData['subscription_plan']['duration'] ?? 0,
                             lastDate: userData['subscription_plan']['end_date'] ?? "Unknown",
-                          ),
+                          )
+                        else 
+                          FallbackUI(),
+
                         // const SizedBox(height: 16),
                         HeaderWidget(
                           heading: 'Upload Weight',
@@ -184,9 +187,9 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
                         ),
                         const SizedBox(height: 10),
                         isAttendanceLoading
-                            ? const Center(child: CircularProgressIndicator())
+                            ? buildAttendanceFallbackUI()
                             : attendanceErrorMessage.isNotEmpty
-                                ? Center(child: Text(attendanceErrorMessage))
+                                ? buildAttendanceFallbackUI()
                                 : attendanceData.isNotEmpty
                                     ? AttendanceWidget(
                                         presentDays: attendanceData['present_days'] ?? 0,
