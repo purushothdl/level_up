@@ -70,22 +70,29 @@ Future<void> _checkScreeningDetails(String userId) async {
 
 
 @override
-  Widget build(BuildContext context) {
-    if (loading) {
-      return Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
+Widget build(BuildContext context) {
+  if (loading) {
+    return Scaffold(
+      backgroundColor: Color.fromARGB(255, 0, 0, 0),
+      body: Center( // Use Center to position the child in the middle
+        child: Container(
+          width: 200,
+          height: 200,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/loading.gif'), // Replace with the correct path to your GIF
-              fit: BoxFit.cover, // Makes the image cover the whole screen
+              image: AssetImage('assets/loading/loading_circle.gif'), // Replace with the correct path to your GIF
+              fit: BoxFit.cover, // Ensures the GIF fits inside the Container
             ),
           ),
         ),
-      );
-    }
-
-    return Scaffold(); // Empty scaffold as loading state will cover it
+      ),
+    );
   }
+
+  // Replace this with your non-loading UI or return the appropriate widget
+  return Scaffold(
+    body: Center(child: Text('Not loading')),
+  );
+}
+
 }

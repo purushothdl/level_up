@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../login/login_screen.dart';
+import '../questionnaire/get_screening.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -18,21 +20,39 @@ class _LoadingScreenState extends State<LoadingScreen>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 1),
+      duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
 
-    // Navigate to LoginScreen after 4 seconds
-    Timer(Duration(seconds: 4), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-      );
-    });
+    _checkLoginStatus(); // Check login status and navigate accordingly
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    String? userId = prefs.getString('user_id');
+
+    // Navigate based on whether token and user_id exist
+    if (token != null && userId != null) {
+      // User is logged in, navigate to GetScreeningScreen
+      Timer(const Duration(seconds: 2), () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => GetScreeningScreen()),
+        );
+      });
+    } else {
+      // User is not logged in, navigate to LoginScreen
+      Timer(const Duration(seconds: 2), () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      });
+    }
   }
 
   @override

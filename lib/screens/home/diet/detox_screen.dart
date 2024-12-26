@@ -3,37 +3,35 @@ import 'package:LevelUp/services/user_service.dart';
 import './diet_widgets/menu_plan_widget.dart';
 
 class DetoxScreen extends StatefulWidget {
-  const DetoxScreen({super.key});
+  final Map<String, dynamic> detoxData;
+
+  const DetoxScreen({super.key, required this.detoxData});
 
   @override
   State<DetoxScreen> createState() => _DetoxScreenState();
 }
 
 class _DetoxScreenState extends State<DetoxScreen> {
-  Map<String, dynamic> detoxData = {}; // Holds detox data
+  late Map<String, dynamic> detoxData; // Local state for detox data
   bool isLoading = true; // Loading state
   String errorMessage = ''; // Error message
 
   @override
   void initState() {
     super.initState();
-    _loadDetoxPlan(); // Fetch detox plan from cache
+    _initializeDetoxPlan(); // Initialize detox plan from passed data
   }
 
-  Future<void> _loadDetoxPlan() async {
-    try {
-      final userDetails = await UserService.getUserDetails(); // Fetch cached user details
-      setState(() {
-        detoxData = userDetails['user']['diet_plan']['one_day_detox_plan'] ?? {}; 
+  void _initializeDetoxPlan() {
+    setState(() {
+      if (widget.detoxData.isNotEmpty) {
+        detoxData = widget.detoxData;
         isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Failed to load detox plan.';
+      } else {
+        errorMessage = 'No detox plan available.';
         isLoading = false;
-      });
-      print("Error loading detox plan: $e");
-    }
+      }
+    });
   }
 
   @override
@@ -50,7 +48,7 @@ class _DetoxScreenState extends State<DetoxScreen> {
         foregroundColor: Colors.black,
       ),
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(  // Wrap the body in a scroll view
+      body: SingleChildScrollView( // Wrap the body in a scroll view
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: isLoading

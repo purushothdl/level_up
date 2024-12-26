@@ -46,20 +46,27 @@ class AppTitle extends StatelessWidget {
                 updateIndex!(3);  // Navigate to UserScreen (index 3)
               }
             },
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1),
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
+child: Container(
+  width: 50,
+  height: 50,
+  decoration: BoxDecoration(
+    shape: BoxShape.circle,
+    border: Border.all(color: Colors.white, width: 1),
+  ),
+  child: ClipOval(
+    child: imagePath == null || imagePath.isEmpty
+        ? Image.asset(
+            'assets/images/profile/chetan.jpg',  // Replace with your default asset image path
+            fit: BoxFit.cover,
+          )
+        : Image(
+            image: NetworkImage(imagePath),  // Use NetworkImage for network URL
+            fit: BoxFit.cover,
+          ),
+  ),
+),
+
+
           ),
         ),
       ],

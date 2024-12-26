@@ -16,6 +16,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController nameController;
   late TextEditingController phoneController;
+  late TextEditingController profilePhotoController;
   late TextEditingController ageController;
   late TextEditingController heightController;
   late TextEditingController occupationController;
@@ -26,12 +27,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(text: widget.userData['user']['name'] ?? '');
-    phoneController = TextEditingController(text: widget.userData['user']['phone_no'] ?? '');
-    ageController = TextEditingController(text: widget.userData['user']['age'].toString());
-    heightController = TextEditingController(text: widget.userData['user']['height'].toString());
-    occupationController = TextEditingController(text: widget.userData['user']['occupation'] ?? '');
-    addressController = TextEditingController(text: widget.userData['user']['address'] ?? '');
+    nameController = TextEditingController(text: widget.userData['name'] ?? '');
+    phoneController = TextEditingController(text: widget.userData['phone_no'] ?? '');
+    profilePhotoController = TextEditingController(text: widget.userData['photo'] ?? '');
+    ageController = TextEditingController(text: widget.userData['age'].toString());
+    heightController = TextEditingController(text: widget.userData['height'].toString());
+    occupationController = TextEditingController(text: widget.userData['occupation'] ?? '');
+    addressController = TextEditingController(text: widget.userData['address'] ?? '');
   }
 
   // Show the bottom sheet to pick an image from the gallery or camera
@@ -114,7 +116,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       shape: BoxShape.circle,
                       image: _profileImage != null
                           ? DecorationImage(image: FileImage(_profileImage!), fit: BoxFit.cover)
-                          : DecorationImage(image: AssetImage('assets/images/profile/chetan.jpg'), fit: BoxFit.cover),
+                          : (widget.userData['photo'] != null && widget.userData['photo'] != '')
+                              ? DecorationImage(image: NetworkImage(widget.userData['photo']), fit: BoxFit.cover)
+                              : DecorationImage(image: AssetImage('assets/images/profile/chetan.jpg'), fit: BoxFit.cover), // Default image
                     ),
                     child: Align(
                       alignment: Alignment.bottomRight,
@@ -208,6 +212,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     if (result['success']) {
                       // Handle success (e.g., show a success message)
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
+
                       Navigator.pop(context);  // Close the screen
                     } else {
                       // Handle failure (e.g., show an error message)
@@ -237,6 +242,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
+
 
   Widget _buildTextField({
     required String label,

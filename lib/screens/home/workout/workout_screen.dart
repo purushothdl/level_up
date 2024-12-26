@@ -171,24 +171,3 @@ Widget buildWorkoutFallbackUI() {
 }
 
 
-// /// Fallback UI when weight data is empty
-// Widget buildWorkoutFallbackUI() {
-//   return Container(
-//     height: 130,
-//     width: double.infinity,
-//     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-//     decoration: BoxDecoration(
-//       color: Colors.white,
-//       borderRadius: BorderRadius.circular(16),
-//     ),
-//     alignment: Alignment.center, // Center the text
-//     child: Text(
-//       'No Workout data available',
-//       style: TextStyle(
-//         color: Colors.black,
-//         fontSize: 16.0,
-//         fontWeight: FontWeight.bold,
-//       ),
-//     ),
-//   );
-// }

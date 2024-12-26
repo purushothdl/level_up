@@ -1,8 +1,11 @@
-import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../../services/user_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'edit_profile.dart';
 import '../home_screen.dart';
+import '../dashboard/utils/dashboard_utils.dart';
+import '../../login/login_screen.dart';
 
 class UserScreen extends StatefulWidget {
   final Function(int) updateIndex;
@@ -14,270 +17,306 @@ class UserScreen extends StatefulWidget {
 
 class _UserScreenState extends State<UserScreen> {
   Map<String, dynamic>? userData;
-  Map<String, dynamic>? user;
   bool isLoading = true;
-  late StreamSubscription _userDataSubscription;
 
   @override
   void initState() {
     super.initState();
-    fetchUserData();
-    
-    // Subscribe to user data updates
-    _userDataSubscription = UserService.userDataStream.listen((data) {
-      if (mounted) {
-        setState(() {
-          userData = data;
-          user = data['user'];
-        });
-      }
-    });
+    fetchUserData(); // Directly fetch user data from the backend
   }
 
   Future<void> fetchUserData() async {
     try {
-      final data = await UserService.getUserDetails();
-      print("Fetched user data: $data");
-      if (mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
         setState(() {
-          userData = data;
-          user = data['user'];
           isLoading = false;
         });
+        return; // No token, handle this case appropriately (you can redirect to login)
+      }
+
+      final response = await http.get(
+        Uri.parse('https://level-up-backend-9hpz.onrender.com/api/me'),
+        headers: {
+          'Authorization': 'Bearer $token', // Add token to headers
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          userData = data['user']; // Save user data into the state
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        print('Failed to fetch user data: ${response.body}');
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      setState(() {
+        isLoading = false;
+      });
       print("Error fetching user data: $e");
     }
   }
 
-  void _updateUserData(Map<String, dynamic> updatedData) {
-    if (mounted) {
-      setState(() {
-        userData = updatedData;
-        user = updatedData['user'];
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _userDataSubscription.cancel();
-    super.dispose();
+  Future<void> _onRefresh() async {
+    // Refresh the data by re-fetching it
+    setState(() {
+      isLoading = true; // Show loading while refreshing
+    });
+    await fetchUserData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-appBar: AppBar(
-  toolbarHeight: 50,
-  backgroundColor: Colors.white,
-  title: Text(
-    'Profile',
-    style: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: Colors.black,
-      fontSize: 20,
-    ),
-  ),
-  centerTitle: true,
-  leading: IconButton( // Place the back arrow here
-    icon: const Icon(Icons.arrow_back, color: Colors.black),
-    onPressed: () {
-      widget.updateIndex(0);
-    },
-  ),
-  actions: [
-    IconButton(
-      icon: const Icon(Icons.edit),
-      onPressed: isLoading || userData == null
-          ? null
-          : () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditProfileScreen(
-                    userData: userData!,
-                    onSave: _updateUserData,
-                  ),
-                ),
-              );
-            },
-    ),
-  ],
-),
-
+      appBar: AppBar(
+        toolbarHeight: 50,
+        backgroundColor: Colors.white,
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            widget.updateIndex(0);
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: isLoading || userData == null
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProfileScreen(
+                          userData: userData!,
+                          onSave: (updatedData) {
+                            setState(() {
+                              userData = updatedData;
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  },
+          ),
+        ],
+      ),
       backgroundColor: Colors.white,
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : user == null
-              ? Center(child: Text("Failed to load user data"))
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Profile Section
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: 45,
-                                  backgroundImage: AssetImage('assets/images/profile/chetan.jpg'),
-                                ),
-                                Positioned(
-                                  bottom: 5,
-                                  right: 5,
-                                  child: Icon(
-                                    Icons.check_circle,
-                                    color: Colors.green,
-                                    size: 24,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+      body: RefreshIndicator(
+        onRefresh: _onRefresh, // Trigger the refresh
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : userData == null
+                ? Center(child: Text("Failed to load user data"))
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Profile Section
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Stack(
                                 children: [
-                                  Text(
-                                    user?['name'] ?? "N/A",
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                  CircleAvatar(
+                                    radius: 45,
+                                  backgroundImage: userData?['photo'] != null
+                                                ? NetworkImage(userData!['photo'])  // Use the URL from user data
+                                                : AssetImage('assets/images/default-avatar.jpg') as ImageProvider,  // Fallback to default image if no photo URL
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    user?['role'] ?? "N/A",
-                                    style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold),
+                                  
+                                  Positioned(
+                                    bottom: 5,
+                                    right: 5,
+                                    child: Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      userData?['name'] ?? "N/A",
+                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      userData?['role'] ?? "N/A",
+                                      style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 20),
+
+                          // Personal Details Widget
+                          InfoWidget(
+                            header: 'Personal Details',
+                            content: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  InfoColumn(
+                                    title: 'Age',
+                                    value: userData?['age'] != null
+                                        ? '${userData?['age']} yrs'
+                                        : "N/A",
+                                  ),
+                                  InfoColumn(
+                                    title: 'Height',
+                                    value: userData?['height'] != null
+                                        ? '${userData?['height']} cm'
+                                        : "N/A",
+                                  ),
+                                  InfoColumn(
+                                    title: 'Weight',
+                                    value: userData?['weight'] != null
+                                        ? '${userData?['weight']} kg'
+                                        : "N/A",
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
+                          ),
+                          SizedBox(height: 20),
 
-                        // Personal Details Widget
-                        InfoWidget(
-                          header: 'Personal Details',
-                          content: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          // LevelUp details
+                          InfoWidget(
+                            header: 'LevelUp Details',
+                            content: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                InfoColumn(
-                                  title: 'Age',
-                                  value: user?['age'] != null
-                                    ? '${user?['age']} yrs'
-                                    : "N/A",
+                                ContactRow(
+                                  icon: Icons.perm_identity,
+                                  label: 'Registration Id',
+                                  value: userData?['registration_id'] ?? "N/A",
+                                  iconColor: Colors.blue,
                                 ),
-                                InfoColumn(
-                                  title: 'Height',
-                                  value: user?['height'] != null 
-                                    ? '${user?['height']} cm' 
-                                    : "N/A",
-                                ),
-
-                                InfoColumn(
-                                  title: 'Weight',
-                                  value: user?['weight'] != null 
-                                    ? '${user?['weight']} kg' 
-                                    : "N/A",
+                                ContactRow(
+                                  icon: Icons.calendar_today,
+                                  label: 'Joined',
+                                  value: userData?['created_at'] != null
+                                      ? formatDateUser(userData!['created_at'])
+                                      : "N/A",
+                                  iconColor: Colors.purple,
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        SizedBox(height: 20),
+                          SizedBox(height: 20),
 
-                        // Contact Details Widget
-                        InfoWidget(
-                          header: 'Contact',
-                          content: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ContactRow(
-                                icon: Icons.email,
-                                label: 'Email',
-                                value: user?['email'] ?? "N/A",
-                                iconColor: Colors.orange,
-                              ),
-                              ContactRow(
-                                icon: Icons.phone,
-                                label: 'Phone No',
-                                value: user?['phone_no'] ?? "N/A",
-                                iconColor: Colors.green,
-                              ),
-                              ContactRow(
-                                icon: Icons.work,
-                                label: 'Occupation',
-                                value: user?['occupation'] ?? "N/A",
-                                iconColor: Colors.blue,
-                              ),
-                              ContactRow(
-                                icon: Icons.location_on,
-                                label: 'Address',
-                                value: user?['address'] ?? "N/A",
-                                iconColor: Colors.red,
-                              ),
-                            ],
+                          // Contact Details Widget
+                          InfoWidget(
+                            header: 'Contact',
+                            content: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ContactRow(
+                                  icon: Icons.email,
+                                  label: 'Email',
+                                  value: userData?['email'] ?? "N/A",
+                                  iconColor: Colors.orange,
+                                ),
+                                ContactRow(
+                                  icon: Icons.phone,
+                                  label: 'Phone No',
+                                  value: userData?['phone_no'] ?? "N/A",
+                                  iconColor: Colors.green,
+                                ),
+                                ContactRow(
+                                  icon: Icons.work,
+                                  label: 'Occupation',
+                                  value: userData?['occupation'] ?? "N/A",
+                                  iconColor: Colors.blue,
+                                ),
+                                ContactRow(
+                                  icon: Icons.location_on,
+                                  label: 'Address',
+                                  value: userData?['address'] ?? "N/A",
+                                  iconColor: Colors.red,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 20),
+                          SizedBox(height: 20),
 
-                        // Medical Info Widget
-                        InfoWidget(
-                          header: 'Medical Info',
-                          content: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ContactRow(
-                                icon: Icons.favorite,
-                                label: 'Heart Trouble',
-                                value: (user?['screening']?['heart_trouble'] ?? "N/A"),
-                                iconColor: Colors.red,
+                          // Logout Button
+                          Center(
+                            child: Container(
+                              width: double.infinity,
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              child: InkWell(
+                                onTap: () async {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.remove('user_id');
+                                  await prefs.remove('token');
+
+                                  // Navigate back to the LoginScreen directly
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => LoginScreen(),
+                                    ),
+                                  );
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 200),
+                                  curve: Curves.easeInOut,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: const Center(
+                                    child: Text(
+                                      "Logout",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              ContactRow(
-                                icon: Icons.add_alert,
-                                label: 'Chest Pain',
-                                value: (user?['screening']?['chest_pain'] ?? "N/A"),
-                                iconColor: Colors.orange,
-                              ),
-                              ContactRow(
-                                icon: Icons.accessibility_new,
-                                label: 'Back/Knee Problems',
-                                value: (user?['screening']?['back_or_knees_problem'] ??  "N/A"),
-                                iconColor: Colors.blue,
-                              ),
-                              ContactRow(
-                                icon: Icons.restaurant,
-                                label: 'Food Preferences',
-                                value: user?['screening']?['food_preferences'] ?? "N/A",
-                                iconColor: Colors.purple,
-                              ),
-                              ContactRow(
-                                icon: Icons.warning,
-                                label: 'Food Allergies',
-                                value: user?['screening']?['food_allergies'] ?? "None",
-                                iconColor: Colors.redAccent,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+      ),
     );
   }
 }
+
+
 
 class InfoWidget extends StatelessWidget {
   final String header;
@@ -332,7 +371,7 @@ class InfoColumn extends StatelessWidget {
         SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
         ),
       ],
     );

@@ -37,8 +37,8 @@ class ImageOverlayButton extends StatelessWidget {
             bottom: 9,
             left: 9,
             child: SizedBox(
-              width: 85,
-              height: 35,
+              // width: 85,
+              // height: 35,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -47,17 +47,17 @@ class ImageOverlayButton extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                  backgroundColor: const Color.fromARGB(255, 86, 160, 46),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  backgroundColor:  Colors.green.withOpacity(0.8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                     // side: const BorderSide(color: Colors.grey),
                   ),
                 ),
                 child: Text(
                   buttonLabel,
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Color.fromARGB(255, 255, 255, 255),
                   ),

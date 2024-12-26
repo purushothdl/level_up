@@ -42,6 +42,9 @@ dependencies:
   fl_chart: ^0.40.0
   syncfusion_flutter_charts: ^20.4.38
   provider: ^6.1.2  # Make sure to use the latest version
+  geolocator: ^10.1.0
+  geocoding: ^2.1.1
+
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +86,8 @@ flutter:
 
     - assets/images/diet/menu/
 
+    - assets/loading/
+    - assets/login/
 
     # Detox images
     - assets/images/diet/detox/detox.jpg

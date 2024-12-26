@@ -9,6 +9,7 @@ import '../dashboard/attendance_part.dart';
 import 'weight_track_part.dart';
 import 'weight_upload_part.dart';
 import 'app_title_part.dart';
+import 'dashboard_widgets/attendance_widgets.dart';
 import './dashboard_widgets/header_widget.dart';
 import 'plan_part.dart';
 import 'package:LevelUp/services/user_service.dart';
@@ -134,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
         title: AppTitle(
           title: 'Level',
           subtitle: 'Up',
-          imagePath: 'assets/images/profile/chetan.jpg',
+          imagePath: userData?['photo'] ?? '',
           updateIndex: widget.updateIndex,  // Pass it to AppTitle
         ),
       ),
@@ -147,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
                 ? Center(child: Text(errorMessage))
                 : SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -187,9 +188,9 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
                         ),
                         const SizedBox(height: 10),
                         isAttendanceLoading
-                            ? buildAttendanceFallbackUI()
+                            ? AttendanceWidgets.buildAttendanceFallbackUI()
                             : attendanceErrorMessage.isNotEmpty
-                                ? buildAttendanceFallbackUI()
+                                ? AttendanceWidgets.buildAttendanceFallbackUI()
                                 : attendanceData.isNotEmpty
                                     ? AttendanceWidget(
                                         presentDays: attendanceData['present_days'] ?? 0,

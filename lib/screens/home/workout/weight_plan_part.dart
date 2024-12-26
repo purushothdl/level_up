@@ -25,7 +25,7 @@ class WeightPlanWidget extends StatelessWidget {
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-      margin: EdgeInsets.only(left: 8, right: 8),
+      margin: EdgeInsets.only(left: 5, right: 5),
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),

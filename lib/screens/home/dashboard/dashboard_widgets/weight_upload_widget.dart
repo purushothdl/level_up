@@ -9,7 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart'; // For token manage
 import '../../diet/diet_widgets/upload_widgets/dashed_border_painter.dart'; // Make sure this file exists
 
 class WeightHeightUploadDialog extends StatefulWidget {
-  const WeightHeightUploadDialog({Key? key}) : super(key: key);
+  final double initialWeight;  // Add this parameter to accept the weight from the parent widget
+  
+  const WeightHeightUploadDialog({Key? key, required this.initialWeight}) : super(key: key);
 
   @override
   State<WeightHeightUploadDialog> createState() =>
@@ -17,10 +19,15 @@ class WeightHeightUploadDialog extends StatefulWidget {
 }
 
 class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
-  TextEditingController weightController = TextEditingController();
-  TextEditingController heightController = TextEditingController();
+  late TextEditingController weightController; // Make it late to initialize in initState
   File? uploadedImage;
   bool _isUploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    weightController = TextEditingController(text: widget.initialWeight.toStringAsFixed(1)); // Set the initial weight
+  }
 
   // Simulating an image picker function
   void _pickImage() async {
@@ -63,7 +70,6 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
 
     // Add the form fields for weight and height
     request.fields['weight'] = weightController.text;
-    request.fields['height'] = heightController.text;
 
     // Add the image if it's available
     if (uploadedImage != null) {
@@ -90,7 +96,7 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
         final responseJson = jsonDecode(responseData);
 
         print('Upload success: $responseJson');
-        _showMessageDialog('Upload Successful!', 'Your weight and height have been successfully uploaded.', Colors.green, true);
+        _showMessageDialog('Upload Successful!', 'Your weight has been successfully uploaded.', Colors.green, true);
       } else if (response.statusCode == 400){
         // If upload fails, show failure message
         _showMessageDialog('Upload Failed!', 'You have already uploaded your weight for this week!', Colors.red, false);
@@ -252,35 +258,9 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Height Input
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Height (cm)', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black)),
-                        const SizedBox(height: 5),
-                        TextField(
-                          controller: heightController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: 'Enter height',
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green, width: 2.0),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green.withOpacity(0.6), width: 1.5),
-                            ),
-                            border: const OutlineInputBorder(),
-                          ),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),
-
               // Image Upload Section
               const Text('Image', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black)),
               SizedBox(height: 5,),
@@ -331,6 +311,7 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
           ),
         ),
       ),
+
       actions: [
         Center(
           child: TextButton(
@@ -338,7 +319,7 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
             style: TextButton.styleFrom(
               side: const BorderSide(color: Colors.green),
               backgroundColor: Colors.green.withOpacity(0.2),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),

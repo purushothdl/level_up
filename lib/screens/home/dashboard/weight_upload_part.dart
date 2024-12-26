@@ -14,22 +14,14 @@ class _WeightTrackerWidgetState extends State<WeightTrackerWidget> {
   double _startDragX = 0;
   double _lastDragValue = 50;
 
-  void _onTap(double dx) {
-    final totalWidth = MediaQuery.of(context).size.width - 32;
-    final tapPosition = dx - 16;
-    final percentage = (tapPosition / totalWidth).clamp(0.0, 1.0);
-    final newValue = percentage * 100;
-    setState(() {
-      _currentValue = newValue;
-    });
-  }
-
-  // Function to show the dialog
+  // Function to show the dialog and pass the current weight value
   void _showUploadDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return WeightHeightUploadDialog(); // Display the dialog
+        return WeightHeightUploadDialog(
+          initialWeight: _currentValue, // Pass the current weight value here
+        );
       },
     );
   }
@@ -37,7 +29,7 @@ class _WeightTrackerWidgetState extends State<WeightTrackerWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16,top: 16),
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,13 +98,10 @@ class _WeightTrackerWidgetState extends State<WeightTrackerWidget> {
                   onHorizontalDragUpdate: (details) {
                     final dragDistance = details.localPosition.dx - _startDragX;
                     setState(() {
-                      _currentValue = (_lastDragValue + dragDistance / 2)
-                          .clamp(1.0, 100.0);
+                      _currentValue = (_lastDragValue + dragDistance / 2).clamp(1.0, 150.0); // Updated to max 150
                     });
                   },
-                  onTapUp: (details) {
-                    _onTap(details.localPosition.dx);
-                  },
+                  // Removed onTapUp since it interferes with drag.
                   onTap: _showUploadDialog, // Trigger the dialog when tapped
                   child: Container(
                     height: 30, // Height for the progress bar area
@@ -121,7 +110,7 @@ class _WeightTrackerWidgetState extends State<WeightTrackerWidget> {
                       children: [
                         Row(
                           children: List.generate(50, (index) {
-                            final segmentValue = (index + 1) * 2;
+                            final segmentValue = (index + 1) * 3;
                             final isActive = segmentValue <= _currentValue;
                             return Expanded(
                               child: Container(

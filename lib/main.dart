@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'screens/loading/loading_screen.dart';
+import 'package:geolocator/geolocator.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Geolocator.requestPermission();
   runApp(MyApp());
 }
 

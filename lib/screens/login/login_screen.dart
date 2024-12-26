@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
   late SharedPreferences prefs;
+  bool _isPasswordVisible = false; // Track the password visibility state
 
   @override
   void initState() {
@@ -23,188 +24,292 @@ class _LoginScreenState extends State<LoginScreen> {
     _initPrefs(); // Initialize SharedPreferences
   }
 
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible; // Toggle the visibility state
+    });
+  }
+
   Future<void> _initPrefs() async {
     prefs = await SharedPreferences.getInstance();
   }
 
-Future<void> _login() async {
-  final String url = 'https://level-up-backend-9hpz.onrender.com/api/auth/login';
+  Future<void> _login() async {
+    final String url = 'https://level-up-backend-9hpz.onrender.com/api/auth/login';
 
-  if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-    setState(() {
-      _errorMessage = 'Incorrect Email or Password';
-    });
-    return;
-  }
-
-  try {
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': _usernameController.text,
-        'password': _passwordController.text,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final responseBody = json.decode(response.body);
-      String token = responseBody['access_token'];
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
-
-      // Fetch user_id after login
-      await _fetchUserId(token);
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => GetScreeningScreen()),
-      );
-    } else {
+    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
         _errorMessage = 'Incorrect Email or Password';
       });
+      return;
     }
-  } catch (e) {
-    setState(() {
-      _errorMessage = 'An error occurred. Please try again.';
-    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': _usernameController.text,
+          'password': _passwordController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = json.decode(response.body);
+        String token = responseBody['access_token'];
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+
+        // Fetch user_id after login
+        await _fetchUserId(token);
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => GetScreeningScreen()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Incorrect Email or Password';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An error occurred. Please try again.';
+      });
+    }
   }
-}
 
-Future<void> _fetchUserId(String token) async {
-  final response = await http.get(
-    Uri.parse('https://level-up-backend-9hpz.onrender.com/api/me'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-  );
+  Future<void> _fetchUserId(String token) async {
+    final response = await http.get(
+      Uri.parse('https://level-up-backend-9hpz.onrender.com/api/me'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
 
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    String userId = data['user']['id'];
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      String userId = data['user']['id'];
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_id', userId);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_id', userId);
 
-    print("User ID Stored: $userId");
-  } else {
-    print("Failed to fetch user ID.");
+      print("User ID Stored: $userId");
+    } else {
+      print("Failed to fetch user ID.");
+    }
   }
-}
 
-
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 70,
-        title: Column(
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(),
+        child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            // Top Section with background image and circular logo
+            Stack(
               children: [
-                Image.asset(
-                  'assets/icons/logo.png',
-                  width: 30,
-                  height: 30,
+                Container(
+                  height: 250,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/login/gym_bg.jpg'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-                SizedBox(width: 10),
-                Text(
-                  'Level Up',
-                  style: TextStyle(
-                    fontFamily: 'Jersey20-Regular',
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 185),
+                    child: Container(
+                      height: 130,
+                      width: 130,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage('assets/icons/logo.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            Divider(thickness: 1, color: Colors.grey[400]),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Wrap content in a container with margin
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20),
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'Email',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _usernameController,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color.fromARGB(255, 245, 245, 245),
+                                prefixIcon: const Icon(Icons.email, color: Colors.blueGrey),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(color: Colors.white),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(color: Colors.orange, width: 2),
+                                ),
+                                hintText: 'Enter your email',
+                                hintStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Password',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: !_isPasswordVisible, // Toggle visibility
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color.fromARGB(255, 245, 245, 245),
+                                prefixIcon: const Icon(Icons.lock, color: Colors.blueGrey),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _isPasswordVisible
+                                        ? Icons.visibility 
+                                        : Icons.visibility_off,
+                                    color: Colors.orange,
+                                  ),
+                                  onPressed: _togglePasswordVisibility, // Toggle visibility
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(color: Colors.white),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: const BorderSide(color: Colors.orange, width: 2),
+                                ),
+                                hintText: 'Enter your password',
+                                hintStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Display error message if any
+                            if (_errorMessage.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Text(
+                                  _errorMessage,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ElevatedButton(
+                              onPressed: () => _login(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange[700],
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                shadowColor: Colors.orange,
+                                side: const BorderSide(color: Colors.transparent),
+                                elevation: 4,
+                              ).copyWith(
+                                side: MaterialStateProperty.resolveWith((states) {
+                                  if (states.contains(MaterialState.pressed)) {
+                                    return const BorderSide(color: Colors.orange, width: 2);
+                                  }
+                                  return BorderSide.none;
+                                }),
+                              ),
+                              child: const Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'For login credentials, contact admin.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
-        ),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      ),
-      body: SingleChildScrollView(  // Wrap with SingleChildScrollView
-        child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(height: 150),
-              Text(
-                'Log in with your Account',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 50),
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-              ),
-              SizedBox(height: 16),
-              // Display success or error message
-              if (_errorMessage.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
-                  child: Text(
-                    _errorMessage,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _errorMessage == 'You will be logged in shortly'
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  ),
-                ),
-              ElevatedButton(
-                onPressed: () => _login(), // Call the login function
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.orange[700],
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text('Login'),
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Don't have an account?"),
-                  TextButton(
-                    onPressed: () {
-                      // Add Sign-Up functionality here
-                    },
-                    child: Text(
-                      'Sign up',
-                      style: TextStyle(decoration: TextDecoration.underline),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
 }
+
+
+

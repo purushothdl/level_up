@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:LevelUp/screens/home/home_screen.dart';
-import 'package:LevelUp/services/user_service.dart';
 import 'detox_screen.dart';
 import './diet_widgets/menu_plan_widget.dart';
 import './diet_plan_part.dart';
@@ -21,37 +23,47 @@ class DietScreenState extends State<DietScreen> {
   Map<String, dynamic> dietData = {};
   bool isLoading = true;
   String errorMessage = '';
-  late StreamSubscription _userDataSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadDietData();
-    
-    // Subscribe to user data updates
-    _userDataSubscription = UserService.userDataStream.listen((userData) {
-      if (mounted) {
-        setState(() {
-          dietData = userData['user']['diet_plan'] ?? {};
-        });
-      }
-    });
   }
 
   Future<void> _loadDietData() async {
-    try {
-      final userDetails = await UserService.getUserDetails();
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
 
-      if (userDetails['user'] != null && userDetails['user']['diet_plan'] != null) {
+    try {
+      // Retrieve user ID and token from SharedPreferences
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? userId = prefs.getString('user_id');
+      final String? token = prefs.getString('token');
+
+      if (userId == null || token == null) {
+        throw Exception('User credentials not found.');
+      }
+
+      // Fetch diet data from the backend
+      final String apiUrl = 'https://level-up-backend-9hpz.onrender.com/api/diet-plan/$userId';
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
         setState(() {
-          dietData = userDetails['user']['diet_plan'];
+          dietData = responseData;
           isLoading = false;
         });
       } else {
-        setState(() {
-          errorMessage = 'No diet plan found.';
-          isLoading = false;
-        });
+        throw Exception('Failed to load diet data: ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
@@ -62,11 +74,10 @@ class DietScreenState extends State<DietScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _userDataSubscription.cancel();
-    super.dispose();
+  Future<void> _refreshDietData() async {
+    await _loadDietData();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,7 +85,7 @@ class DietScreenState extends State<DietScreen> {
         toolbarHeight: 50,
         title: Text(
           'Diet Plan',
-          style: TextStyle(fontWeight: FontWeight.bold ,fontSize: 20),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -88,67 +99,71 @@ class DietScreenState extends State<DietScreen> {
       ),
       backgroundColor: Colors.white,
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loader while fetching data
-          : (dietData == null || dietData.isEmpty) // Handle null or empty diet plan
-              ? buildDietFallbackUI() // Show error if any
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        HeaderWidget(
-                          heading: 'Personalised Diet Plan',
-                          caption: "Health goals recommended by Trainer.",
+          ? Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _refreshDietData, // Pull-to-refresh action
+              child: dietData.isEmpty
+                  ? buildDietFallbackUI()
+                  : SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            HeaderWidget(
+                              heading: 'Personalised Diet Plan',
+                              caption: "Health goals recommended by Trainer.",
+                            ),
+                            SizedBox(height: 4),
+                            buildWeightGainDetails(context, dietData),
+                            SizedBox(height: 20),
+                            HeaderWidget(
+                              heading: 'Curated Menu',
+                              caption: 'List of foods to choose from.',
+                            ),
+                            SizedBox(height: 4),
+                            if (dietData['menu_plan'] != null &&
+                                dietData['menu_plan']['timings'] != null)
+                              MenuPlanWidget(timings: dietData['menu_plan']['timings']),
+                            if (dietData['menu_plan'] == null ||
+                                dietData['menu_plan']['timings'].isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text('No menu items available for this period.'),
+                              ),
+                            SizedBox(height: 20),
+                            HeaderWidget(
+                              heading: 'Detox Plan',
+                              caption: 'One day detox plan to lose weight in a healthy way.',
+                            ),
+                            SizedBox(height: 4),
+                            ImageOverlayButton(
+                              imagePath: 'assets/image.png',
+                              buttonLabel: 'Detox Diet',
+                              targetScreen: DetoxScreen(detoxData: dietData['one_day_detox_plan'] ?? {}),
+                            ),
+
+                            SizedBox(height: 20),
+                            HeaderWidget(
+                              heading: 'Guidelines',
+                              caption: 'Advice from the Trainers',
+                            ),
+                            SizedBox(height: 4),
+                            if (dietData['guidelines'] != null)
+                              ...buildGuidelines(dietData['guidelines']),
+                          ],
                         ),
-                        SizedBox(height: 4),
-                        buildWeightGainDetails(context, dietData),
-                        SizedBox(height: 20),
-                        HeaderWidget(
-                          heading: 'Curated Menu',
-                          caption: 'List of foods to choose from.',
-                        ),
-                        SizedBox(height: 4),
-                        if (dietData['menu_plan'] != null &&
-                            dietData['menu_plan']['timings'] != null)
-                          MenuPlanWidget(timings: dietData['menu_plan']['timings']),
-                        if (dietData['menu_plan'] == null ||
-                            dietData['menu_plan']['timings'].isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text('No menu items available for this period.'),
-                          ),
-                        SizedBox(height: 20),
-                        HeaderWidget(
-                          heading: 'Detox Plan',
-                          caption: 'One day detox plan to lose weight in a healthy way.',
-                        ),
-                        SizedBox(height: 4),
-                        ImageOverlayButton(
-                          imagePath: 'assets/image.png',
-                          buttonLabel: 'Detox',
-                          targetScreen: DetoxScreen(),
-                        ),
-                        SizedBox(height: 20),
-                        HeaderWidget(
-                          heading: 'Guidelines',
-                          caption: 'Advice from the Trainers',
-                        ),
-                        SizedBox(height: 4),
-                        if (dietData['guidelines'] != null)
-                          ...buildGuidelines(dietData['guidelines']),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+            ),
     );
   }
 }
 
-
-/// Fallback UI when weight data is empty
+/// Fallback UI when diet data is empty
 Widget buildDietFallbackUI() {
-  return Center( // Centers the entire container within its parent
+  return Center(
     child: Container(
       height: 130,
       width: double.infinity,
@@ -157,7 +172,7 @@ Widget buildDietFallbackUI() {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      alignment: Alignment.center, // Center the text within the container
+      alignment: Alignment.center,
       child: Text(
         'No Diet data available',
         style: TextStyle(
