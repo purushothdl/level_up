@@ -38,7 +38,7 @@ class ImageOverlayButton extends StatelessWidget {
             left: 9,
             child: SizedBox(
               // width: 85,
-              // height: 35,
+              height: 35,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -50,7 +50,7 @@ class ImageOverlayButton extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                   backgroundColor:  Colors.green.withOpacity(0.8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     // side: const BorderSide(color: Colors.grey),
                   ),
                 ),

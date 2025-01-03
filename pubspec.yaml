@@ -88,6 +88,8 @@ flutter:
 
     - assets/loading/
     - assets/login/
+    - assets/images/profile/
+    - assets/images/gym_images/
 
     # Detox images
     - assets/images/diet/detox/detox.jpg

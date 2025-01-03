@@ -135,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
         title: AppTitle(
           title: 'Level',
           subtitle: 'Up',
-          imagePath: userData?['photo'] ?? '',
+          imagePath: userData['photo'] ?? '',
           updateIndex: widget.updateIndex,  // Pass it to AppTitle
         ),
       ),

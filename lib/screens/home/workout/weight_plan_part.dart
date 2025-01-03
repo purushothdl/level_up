@@ -41,7 +41,7 @@ class WeightPlanWidget extends StatelessWidget {
         children: [
           SizedBox(
             width: double.infinity,  
-            height: 165,
+            height: 175,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -72,7 +72,7 @@ class WeightPlanWidget extends StatelessWidget {
                       return Container(
                         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.orange,
+                          color: Colors.black.withOpacity(0.6),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         constraints: BoxConstraints(

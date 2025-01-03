@@ -139,7 +139,7 @@ class _UserScreenState extends State<UserScreen> {
                                     radius: 45,
                                   backgroundImage: userData?['photo'] != null
                                                 ? NetworkImage(userData!['photo'])  // Use the URL from user data
-                                                : AssetImage('assets/images/default-avatar.jpg') as ImageProvider,  // Fallback to default image if no photo URL
+                                                : AssetImage('assets/images/profile/default_profile.jpg') as ImageProvider,  // Fallback to default image if no photo URL
                                   ),
                                   
                                   Positioned(
@@ -274,8 +274,9 @@ class _UserScreenState extends State<UserScreen> {
                               child: InkWell(
                                 onTap: () async {
                                   final prefs = await SharedPreferences.getInstance();
-                                  await prefs.remove('user_id');
-                                  await prefs.remove('token');
+
+                                  // Clear all cached details
+                                  await prefs.clear();
 
                                   // Navigate back to the LoginScreen directly
                                   Navigator.pushReplacement(

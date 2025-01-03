@@ -35,7 +35,7 @@ class _WorkOutPartState extends State<WorkOutPart> {
             });
           },
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         // Use PageStorageKey to preserve scroll position for each tab
         ListView(
           shrinkWrap: true,
@@ -48,14 +48,16 @@ class _WorkOutPartState extends State<WorkOutPart> {
                     level: exercise['level'] ?? 'Unknown Level',
                     sets: exercise['sets'] ?? 0,
                     reps: exercise['reps'] ?? 0,
+                    calories: exercise['calories'] ?? 0,
                     type: exercise['type'] ?? 'Unknown Type',
+                    workoutImage: exercise['workout_image'] ?? '',
                   );
                 }).toList()
               : [
                   SizedBox(height: 80),
                   const Center(
                     child: Text(
-                      'No exercises available for this day.',
+                      'Rest day for you.',
                       style: TextStyle(fontSize: 16),
                     ),
                   )

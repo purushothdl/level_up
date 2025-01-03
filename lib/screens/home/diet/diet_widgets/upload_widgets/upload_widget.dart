@@ -10,14 +10,14 @@ import 'package:http_parser/http_parser.dart';
 class MenuDialog extends StatefulWidget {
   // Existing properties
   final dynamic menuItem;
-  final String imagePath;
-  final Map<String, bool> imageExistenceCache;
+  final String imageUrl;
+  final String localImagePath;
 
   const MenuDialog({
     Key? key,
     required this.menuItem,
-    required this.imagePath,
-    required this.imageExistenceCache,
+    required this.imageUrl,
+    required this.localImagePath,
   }) : super(key: key);
 
   @override
@@ -126,11 +126,17 @@ Future<void> _uploadDietLog() async {
       if (mounted) {
         _showMessageDialog('Upload Successful!', 'Your diet log has been successfully uploaded.', Colors.green, true);
       }
-    } else {
+    } else if (response.statusCode == 400) {
       
       // Show failure message pop-up
       if (mounted) {
         _showMessageDialog('Upload Failed!', 'Diet log for this item has already been uploaded today! Please try again tomorrow.', Colors.red, false);
+      }
+    }  else if (response.statusCode == 422) {
+      
+      // Show failure message pop-up
+      if (mounted) {
+        _showMessageDialog('Upload Failed!', "Please enter valid data. Emtpy fields or invalid data can't be uploaded.", Colors.red, false);
       }
     }
   } catch (e) {
@@ -282,19 +288,38 @@ void _showMessageDialog(String title, String message, Color color, bool isSucces
               Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(50),
-                  child: Image.asset(
-                    widget.imageExistenceCache[widget.imagePath] == true
-                        ? widget.imagePath
-                        : 'assets/images/diet/menu/oats with milk and fruits.jpg',
+                  child: Image.network(
+                    widget.imageUrl.isNotEmpty
+                        ? widget.imageUrl
+                        : widget.localImagePath,
                     width: 100,
                     height: 100,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        widget.localImagePath,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 100,
+                            height: 100,
+                            color: Colors.grey,
+                            child: const Center(
+                              child: Text('Image not available'),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
               const Text('Food Item', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
               TextField(
                 controller: foodController,
                 decoration: InputDecoration(
@@ -319,6 +344,7 @@ void _showMessageDialog(String title, String message, Color color, bool isSucces
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Quantity', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
                         Container(
                           height: 50,
                           child: TextField(
@@ -348,9 +374,10 @@ void _showMessageDialog(String title, String message, Color color, bool isSucces
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Units', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
                         DropdownButtonFormField<String>(
                           value: selectedUnit,
-                          hint: const Text('gms', style: TextStyle(fontWeight: FontWeight.bold)),
+                          hint: const Text('', style: TextStyle(fontWeight: FontWeight.bold)),
                           onChanged: (String? newValue) {
                             setState(() {
                               selectedUnit = newValue!;
@@ -391,6 +418,7 @@ void _showMessageDialog(String title, String message, Color color, bool isSucces
 
               const SizedBox(height: 16),
               const Text('Image', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
               GestureDetector(
                 onTap: _pickImage,
                 child: Stack(

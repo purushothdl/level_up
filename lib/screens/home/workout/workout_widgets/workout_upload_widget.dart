@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
+// import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WorkoutUploadDialog extends StatefulWidget {
@@ -26,14 +26,13 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
   late TextEditingController setsController;
   late TextEditingController repsController;
   late TextEditingController weightController;
-  String? selectedIntensity = "5";  // Default intensity value
   bool isUploading = false;  // To manage loading state
 
   @override
   void initState() {
     super.initState();
-    setsController = TextEditingController(text: '0'); // Default to 0
-    repsController = TextEditingController(text: '0'); // Default to 0
+    setsController = TextEditingController(); // Default to 0
+    repsController = TextEditingController(); // Default to 0
     weightController = TextEditingController(); // Optional weight field
   }
 
@@ -68,12 +67,10 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
       'workout': {
         'workout_name': widget.workout,
         'sets_assigned': widget.setsAssigned,
-        'sets_done': int.tryParse(setsController.text) ?? 0,
+        'sets_done': int.tryParse(setsController.text) ,
         'reps_assigned': widget.repsAssigned,
-        'reps_done': int.tryParse(repsController.text) ?? 0,
-        'weight': weightController.text.isNotEmpty ? double.tryParse(weightController.text) ?? 1.0 : 1.0,
-        'intensity': int.tryParse(selectedIntensity ?? '5') ?? 5,
-      }
+        'reps_done': int.tryParse(repsController.text) ,
+        'weight': weightController.text.isNotEmpty ? double.tryParse(weightController.text) ?? 1.0 : 1.0,      }
     };
 
     try {
@@ -96,10 +93,11 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
         print('Upload success: $responseJson');
         
         // Show success message pop-up
-        _showMessageDialog('Upload Successful!', 'Your this workout log has been successfully uploaded.', Colors.green, true);
-      } else {
-        print('Upload failed with status: ${response.statusCode}');
+        _showMessageDialog('Upload Successful!', 'This workout log has been successfully uploaded.', Colors.green, true);
+      } else if (response.statusCode == 400) {
         _showMessageDialog('Upload Failed!', 'This workout log has already been uploaded for today! Please try again tomorrow.', Colors.red, false);
+      } else if (response.statusCode == 422){
+        _showMessageDialog(('Upload Failed'), "Please provide valid data. Empty fields can't be uploaded.", Colors.red, false);
       }
     } catch (e) {
       print('Error during upload: $e');
@@ -253,16 +251,19 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
               Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    widget.imagePath,
-                    width: 200,
-                    height: 200,
+                  child: Image(
+                    image: widget.imagePath.isNotEmpty == true
+                        ? NetworkImage(widget.imagePath)
+                        : AssetImage('assets/images/workouts/Bench Press.gif') as ImageProvider,
+                    width: 150,
+                    height: 150,
                     fit: BoxFit.contain,
-                  ),
+                  )
                 ),
               ),
               const SizedBox(height: 5),
               const Text('Workout', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
               TextField(
                 readOnly: true,
                 controller: TextEditingController(text: widget.workout),
@@ -289,6 +290,7 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Sets', style: TextStyle(fontWeight: FontWeight.w600)),
+                        SizedBox(height: 4),
                         Container(
                           height: 50,
                           child: TextField(
@@ -296,6 +298,7 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'Enter sets',
+                              hintStyle: TextStyle(color: Colors.grey.shade600),  // Set the color of the hint text here
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.blue, width: 2.0),
                               ),
@@ -317,6 +320,7 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Reps', style: TextStyle(fontWeight: FontWeight.w600)),
+                        SizedBox(height: 4),
                         Container(
                           height: 50,
                           child: TextField(
@@ -324,6 +328,7 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'Enter reps',
+                              hintStyle: TextStyle(color: Colors.grey.shade600),  // Set the color of the hint text here
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.blue, width: 2.0),
                               ),
@@ -344,11 +349,12 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
               Row(
                 children: [
                   Expanded(
-                    flex: 1,
+                    // flex: 1,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Weight (optional)', style: TextStyle(fontWeight: FontWeight.w600)),
+                        SizedBox(height: 4),
                         Container(
                           height: 50,
                           child: TextField(
@@ -356,6 +362,7 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'Enter weight',
+                              hintStyle: TextStyle(color: Colors.grey.shade600),  // Set the color of the hint text here
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.blue, width: 2.0),
                               ),
@@ -370,56 +377,56 @@ class _WorkoutUploadDialogState extends State<WorkoutUploadDialog> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Intensity', style: TextStyle(fontWeight: FontWeight.w600)),
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 0),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.blue.withOpacity(0.6),
-                              width: 1.5,
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: () {
-                                  setState(() {
-                                    if (selectedIntensity != null && int.parse(selectedIntensity!) > 1) {
-                                      selectedIntensity = (int.parse(selectedIntensity!) - 1).toString();
-                                    }
-                                  });
-                                },
-                                color: Colors.blue,
-                              ),
-                              Text(
-                                selectedIntensity ?? "5",
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () {
-                                  setState(() {
-                                    if (selectedIntensity != null && int.parse(selectedIntensity!) < 10) {
-                                      selectedIntensity = (int.parse(selectedIntensity!) + 1).toString();
-                                    }
-                                  });
-                                },
-                                color: Colors.blue,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // const SizedBox(width: 16),
+                  // Expanded(
+                  //   child: Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       const Text('Intensity', style: TextStyle(fontWeight: FontWeight.w600)),
+                  //       Container(
+                  //         padding: const EdgeInsets.symmetric(vertical: 0),
+                  //         decoration: BoxDecoration(
+                  //           border: Border.all(
+                  //             color: Colors.blue.withOpacity(0.6),
+                  //             width: 1.5,
+                  //           ),
+                  //           borderRadius: BorderRadius.circular(4),
+                  //         ),
+                  //         child: Row(
+                  //           mainAxisAlignment: MainAxisAlignment.center,
+                  //           children: [
+                  //             IconButton(
+                  //               icon: const Icon(Icons.remove),
+                  //               onPressed: () {
+                  //                 setState(() {
+                  //                   if (selectedIntensity != null && int.parse(selectedIntensity!) > 1) {
+                  //                     selectedIntensity = (int.parse(selectedIntensity!) - 1).toString();
+                  //                   }
+                  //                 });
+                  //               },
+                  //               color: Colors.blue,
+                  //             ),
+                  //             Text(
+                  //               selectedIntensity ?? "5",
+                  //               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  //             ),
+                  //             IconButton(
+                  //               icon: const Icon(Icons.add),
+                  //               onPressed: () {
+                  //                 setState(() {
+                  //                   if (selectedIntensity != null && int.parse(selectedIntensity!) < 10) {
+                  //                     selectedIntensity = (int.parse(selectedIntensity!) + 1).toString();
+                  //                   }
+                  //                 });
+                  //               },
+                  //               color: Colors.blue,
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                 ],
               ),
               const SizedBox(height: 16),

@@ -118,7 +118,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ? DecorationImage(image: FileImage(_profileImage!), fit: BoxFit.cover)
                           : (widget.userData['photo'] != null && widget.userData['photo'] != '')
                               ? DecorationImage(image: NetworkImage(widget.userData['photo']), fit: BoxFit.cover)
-                              : DecorationImage(image: AssetImage('assets/images/profile/chetan.jpg'), fit: BoxFit.cover), // Default image
+                              : DecorationImage(image: AssetImage('assets/images/profile/default_profile.jpg'), fit: BoxFit.cover), // Default image
                     ),
                     child: Align(
                       alignment: Alignment.bottomRight,

@@ -18,22 +18,22 @@ class InfoContainer extends StatelessWidget {
     final double screenWidth = MediaQuery.of(context).size.width;
 
     // Set responsive sizes
-    final double containerWidth = screenWidth * 0.25; // 30% of screen width
-    final double containerHeight = 55; // Fixed height
+    // final double containerWidth = screenWidth * 0.25; // 30% of screen width
+    // final double containerHeight = 55; // Fixed height
     final double headerFontSize = screenWidth < 400 ? 10 : 12; // Responsive header font size
     final double numberFontSize = screenWidth < 400 ? 20 : 22; // Responsive number font size
     final double unitFontSize = screenWidth < 400 ? 10 : 12; // Responsive unit font size
 
     return Container(
-      width: containerWidth, // Responsive width
-      height: containerHeight, // Fixed height
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      // width: containerWidth, // Responsive width
+      // height: containerHeight, // Fixed height
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 250, 250, 250),
+        color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start
+        crossAxisAlignment: CrossAxisAlignment.center, // Align children to the start
         children: [
           if (header != null && header!.isNotEmpty) ...[ // Check if header is not null and not empty
             Text(
@@ -47,8 +47,9 @@ class InfoContainer extends StatelessWidget {
             ),
             const SizedBox(height: 4), // Space between header and number/unit
           ],
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Center the row's children
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center, // Center the column's children
+            crossAxisAlignment: CrossAxisAlignment.center, // Align children horizontally in the center
             children: [
               Text(
                 number,
@@ -60,12 +61,12 @@ class InfoContainer extends StatelessWidget {
                 ),
               ),
               if (unit.isNotEmpty) ...[
-                const SizedBox(width: 5), // Space between number and unit
+                const SizedBox(height: 5), // Space between number and unit
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), // Padding around the text
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 237, 237, 237), // Grey background
-                    border: Border.all(color: const Color.fromARGB(255, 236, 236, 236)), // Grey border
+                    color: const Color.fromARGB(255, 255, 255, 255), // White background
+                    border: Border.all(color: const Color.fromARGB(255, 255, 255, 255)), // Grey border
                     borderRadius: BorderRadius.circular(8), // Rounded corners
                   ),
                   child: Center( // Center the unit text

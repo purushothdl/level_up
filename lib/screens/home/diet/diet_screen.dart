@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:LevelUp/screens/home/home_screen.dart';
 import 'detox_screen.dart';
 import './diet_widgets/menu_plan_widget.dart';
 import './diet_plan_part.dart';
@@ -62,6 +61,13 @@ class DietScreenState extends State<DietScreen> {
           dietData = responseData;
           isLoading = false;
         });
+      } else if (response.statusCode == 404) {
+        // Handle the 404 error when no data is found
+        setState(() {
+          dietData = {}; // Clear existing diet data
+          isLoading = false;
+          errorMessage = 'No Diet data available';
+        });
       } else {
         throw Exception('Failed to load diet data: ${response.statusCode}');
       }
@@ -103,7 +109,7 @@ class DietScreenState extends State<DietScreen> {
           : RefreshIndicator(
               onRefresh: _refreshDietData, // Pull-to-refresh action
               child: dietData.isEmpty
-                  ? buildDietFallbackUI()
+                  ? buildDietFallbackUI() // Fallback UI when diet data is empty
                   : SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: Padding(
@@ -123,11 +129,9 @@ class DietScreenState extends State<DietScreen> {
                               caption: 'List of foods to choose from.',
                             ),
                             SizedBox(height: 4),
-                            if (dietData['menu_plan'] != null &&
-                                dietData['menu_plan']['timings'] != null)
+                            if (dietData['menu_plan'] != null && dietData['menu_plan']['timings'] != null)
                               MenuPlanWidget(timings: dietData['menu_plan']['timings']),
-                            if (dietData['menu_plan'] == null ||
-                                dietData['menu_plan']['timings'].isEmpty)
+                            if (dietData['menu_plan'] == null || dietData['menu_plan']['timings'].isEmpty)
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text('No menu items available for this period.'),
@@ -140,18 +144,16 @@ class DietScreenState extends State<DietScreen> {
                             SizedBox(height: 4),
                             ImageOverlayButton(
                               imagePath: 'assets/image.png',
-                              buttonLabel: 'Detox Diet',
+                              buttonLabel: 'Detox',
                               targetScreen: DetoxScreen(detoxData: dietData['one_day_detox_plan'] ?? {}),
                             ),
-
                             SizedBox(height: 20),
                             HeaderWidget(
                               heading: 'Guidelines',
                               caption: 'Advice from the Trainers',
                             ),
                             SizedBox(height: 4),
-                            if (dietData['guidelines'] != null)
-                              ...buildGuidelines(dietData['guidelines']),
+                            if (dietData['guidelines'] != null) ...buildGuidelines(dietData['guidelines']),
                           ],
                         ),
                       ),
@@ -159,28 +161,23 @@ class DietScreenState extends State<DietScreen> {
             ),
     );
   }
-}
 
-/// Fallback UI when diet data is empty
-Widget buildDietFallbackUI() {
-  return Center(
-    child: Container(
-      height: 130,
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        'No Diet data available',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 16.0,
-          fontWeight: FontWeight.bold,
+  /// Fallback UI when diet data is empty
+  Widget buildDietFallbackUI() {
+    return SingleChildScrollView(
+      physics: AlwaysScrollableScrollPhysics(), // Make the fallback UI scrollable
+      child: Container(
+        height: 600, // Fill the screen height
+        alignment: Alignment.center,
+        child: Text(
+          'No Diet data available',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

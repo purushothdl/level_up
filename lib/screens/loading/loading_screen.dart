@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../login/login_screen.dart';
 import '../questionnaire/get_screening.dart';
+import 'subscription_expired.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -39,12 +42,42 @@ class _LoadingScreenState extends State<LoadingScreen>
 
     // Navigate based on whether token and user_id exist
     if (token != null && userId != null) {
-      // User is logged in, navigate to GetScreeningScreen
-      Timer(const Duration(seconds: 2), () {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => GetScreeningScreen()),
-        );
-      });
+      // Call the check_plan_validity API
+      final response = await http.get(
+        Uri.parse('https://level-up-backend-9hpz.onrender.com/api/user/check_plan_validity/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Parse the response
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final bool isPlanValid = responseData['is_valid'];
+
+        // Navigate based on plan validity
+        Timer(const Duration(seconds: 0), () {
+          if (isPlanValid) {
+            // Plan is valid, navigate to GetScreeningScreen
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => GetScreeningScreen()),
+            );
+          } else {
+            // Plan is expired, navigate to SubscriptionExpiredScreen
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => SubscriptionExpiredScreen()),
+            );
+          }
+        });
+      } else {
+        // Handle API errors
+        Timer(const Duration(seconds: 1), () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+          );
+        });
+      }
     } else {
       // User is not logged in, navigate to LoginScreen
       Timer(const Duration(seconds: 2), () {

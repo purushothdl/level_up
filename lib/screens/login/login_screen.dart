@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../questionnaire/get_screening.dart';
+import '../loading/subscription_expired.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,72 +35,101 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs = await SharedPreferences.getInstance();
   }
 
-  Future<void> _login() async {
-    final String url = 'https://level-up-backend-9hpz.onrender.com/api/auth/login';
+Future<void> _login() async {
+  final String url = 'https://level-up-backend-9hpz.onrender.com/api/auth/login';
 
-    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-      setState(() {
-        _errorMessage = 'Incorrect Email or Password';
-      });
-      return;
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': _usernameController.text,
-          'password': _passwordController.text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseBody = json.decode(response.body);
-        String token = responseBody['access_token'];
-
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
-
-        // Fetch user_id after login
-        await _fetchUserId(token);
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => GetScreeningScreen()),
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Incorrect Email or Password';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'An error occurred. Please try again.';
-      });
-    }
+  if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+    setState(() {
+      _errorMessage = 'Incorrect Email or Password';
+    });
+    return;
   }
 
-  Future<void> _fetchUserId(String token) async {
-    final response = await http.get(
-      Uri.parse('https://level-up-backend-9hpz.onrender.com/api/me'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': _usernameController.text,
+        'password': _passwordController.text,
+      }),
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      String userId = data['user']['id'];
+      final responseBody = json.decode(response.body);
+      String token = responseBody['access_token'];
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_id', userId);
+      await prefs.setString('token', token);
 
-      print("User ID Stored: $userId");
+      // Fetch user_id after login
+      await _fetchUserId(token);
+
+      // Check subscription plan validity
+      final validityResponse = await http.get(
+        Uri.parse('https://level-up-backend-9hpz.onrender.com/api/user/check_plan_validity/${prefs.getString('user_id')}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (validityResponse.statusCode == 200) {
+        final validityData = json.decode(validityResponse.body);
+        final bool isPlanValid = validityData['is_valid'];
+
+        if (isPlanValid) {
+          // Plan is valid, navigate to GetScreeningScreen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => GetScreeningScreen()),
+          );
+        } else {
+          // Plan is expired, navigate to SubscriptionExpiredScreen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => SubscriptionExpiredScreen()),
+          );
+        }
+      } else {
+        // Handle API errors
+        setState(() {
+          _errorMessage = 'Failed to check subscription plan. Please try again.';
+        });
+      }
     } else {
-      print("Failed to fetch user ID.");
+      setState(() {
+        _errorMessage = 'Incorrect Email or Password';
+      });
     }
+  } catch (e) {
+    setState(() {
+      _errorMessage = 'An error occurred. Please try again.';
+    });
   }
+}
+
+Future<void> _fetchUserId(String token) async {
+  final response = await http.get(
+    Uri.parse('https://level-up-backend-9hpz.onrender.com/api/me'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    String userId = data['user']['id'];
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_id', userId);
+
+    print("User ID Stored: $userId");
+  } else {
+    print("Failed to fetch user ID.");
+  }
+}
+
+
 
  @override
   Widget build(BuildContext context) {
@@ -170,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Email',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.black,
                               ),
                             ),
@@ -195,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 hintText: 'Enter your email',
                                 hintStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w500,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -205,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Password',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.black,
                               ),
                             ),
@@ -240,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 hintText: 'Enter your password',
                                 hintStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w500,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -271,8 +301,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 side: const BorderSide(color: Colors.transparent),
                                 elevation: 4,
                               ).copyWith(
-                                side: MaterialStateProperty.resolveWith((states) {
-                                  if (states.contains(MaterialState.pressed)) {
+                                side: WidgetStateProperty.resolveWith((states) {
+                                  if (states.contains(WidgetState.pressed)) {
                                     return const BorderSide(color: Colors.orange, width: 2);
                                   }
                                   return BorderSide.none;
@@ -291,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 20),
                       const Text(
-                        'For login credentials, contact admin.',
+                        'For login credentials, contact Admin.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,

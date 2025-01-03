@@ -2,11 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'dart:async';
+import './mark_attendance_widgets/mark_attendance_button_widgets.dart'; // Import the new file
 
-const double gymLatitude = 13.60278;
-const double gymLongitude = 79.41583;
-const double attendanceRange = 3000;
+// Constants
+const double attendanceRange = 50; // Allowed range for attendance in meters
 
+// // Gym Model
+// class Gym {
+//   final String name;
+//   final double latitude;
+//   final double longitude;
+//   final String imagePath;
+
+//   Gym({
+//     required this.name,
+//     required this.latitude,
+//     required this.longitude,
+//     required this.imagePath,
+//   });
+// }
+
+// home: 13.602945052265659, 79.41596142264298
+
+// List of Gyms
+final List<Gym> gyms = [
+  Gym(
+    name: "Air Bypass Road Branch",
+    latitude: 13.622703635970185,
+    longitude: 79.41386342472839,
+    imagePath: "assets/images/gym_images/level_up_bypass.jpg",
+  ),
+  Gym(
+    name: "Bairagi Patteda Branch",
+    latitude: 13.619934282133901,
+    longitude: 79.42187772016833,
+    imagePath: "assets/images/gym_images/level_up_bairagi_patteda.jpg",
+  ),
+];
+
+// AttendanceButton Widget
 class AttendanceButton extends StatefulWidget {
   const AttendanceButton({Key? key}) : super(key: key);
 
@@ -19,6 +54,8 @@ class _AttendanceButtonState extends State<AttendanceButton> with SingleTickerPr
   bool _isLoading = false;
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  StreamSubscription<Position>? _positionStream;
+  double _currentDistance = double.infinity;
 
   @override
   void initState() {
@@ -35,153 +72,146 @@ class _AttendanceButtonState extends State<AttendanceButton> with SingleTickerPr
 
   @override
   void dispose() {
+    _positionStream?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
-Future<bool> isUserNearGym(double gymLat, double gymLng, double thresholdInMeters) async {
-  try {
-    print("\n=== LOCATION CHECK STARTED ===");
-    print("Target Gym Location: ");
-    print("Latitude: $gymLat°");
-    print("Longitude: $gymLng°");
-    print("Allowed Range: $thresholdInMeters meters");
-
+  // Get Current Location
+  Future<Position?> _getCurrentLocation() async {
     bool hasPermission = await checkLocationPermission();
-    if (!hasPermission) {
-      print("❌ Permission check failed");
-      print("=== LOCATION CHECK ENDED ===\n");
-      return false;
-    }
-    print("✅ Location permission granted");
+    if (!hasPermission) return null;
 
-    print("📍 Getting current position...");
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-      timeLimit: const Duration(seconds: 5),
-    );
-
-    print("\nCurrent Position Details:");
-    print("Latitude: ${position.latitude}°");
-    print("Longitude: ${position.longitude}°");
-    print("Accuracy: ±${position.accuracy} meters");
-    print("Altitude: ${position.altitude} meters");
-    print("Speed: ${position.speed} m/s");
-    print("Timestamp: ${position.timestamp}");
-
-    double distance = Geolocator.distanceBetween(
-      position.latitude,
-      position.longitude,
-      gymLat,
-      gymLng,
-    );
-
-    print("\nDistance Calculation:");
-    print("Calculated distance to gym: ${distance.toStringAsFixed(2)} meters");
-    print("Maximum allowed distance: $thresholdInMeters meters");
-    
-    bool isNear = distance <= thresholdInMeters;
-    print(isNear ? "✅ Within range!" : "❌ Out of range!");
-    print("=== LOCATION CHECK ENDED ===\n");
-
-    return isNear;
-  } catch (e, stackTrace) {
-    print("\n❌ ERROR IN LOCATION CHECK:");
-    print("Error type: ${e.runtimeType}");
-    print("Error message: $e");
-    print("Stack trace:");
-    print(stackTrace);
-    print("=== LOCATION CHECK ENDED WITH ERROR ===\n");
-
-    _showMessageDialog(
-      "Error",
-      "Failed to get location. Error: $e",
-      Colors.red,
-      false,
-    );
-    return false;
-  }
-}
-
-Future<bool> checkLocationPermission() async {
-  print("\n--- Checking Location Permissions ---");
-  try {
-    // Check if location services are enabled
-    print("1. Checking if location services are enabled...");
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    print(serviceEnabled ? "✅ Location services are enabled" : "❌ Location services are disabled");
-
-    if (!serviceEnabled) {
-      print("❌ Location services need to be enabled in device settings");
-      _showMessageDialog(
-        "Error",
-        "Location services are disabled. Please enable them in your settings.",
-        Colors.red,
-        false,
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.bestForNavigation,
       );
-      return false;
+
+      return position;
+    } catch (e) {
+      print("❌ Error getting current location: $e");
+      return null;
     }
+  }
 
-    // Check current permission status
-    print("\n2. Checking current permission status...");
-    LocationPermission permission = await Geolocator.checkPermission();
-    print("Current permission status: $permission");
-
-    if (permission == LocationPermission.denied) {
-      print("Permission denied, requesting permission...");
-      permission = await Geolocator.requestPermission();
-      print("New permission status after request: $permission");
-
-      if (permission == LocationPermission.denied) {
-        print("❌ Permission denied by user");
+  // Check Location Permissions
+  Future<bool> checkLocationPermission() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
         _showMessageDialog(
           "Error",
-          "Location permissions are denied. Please enable them to mark attendance.",
+          "Location services are disabled. Please enable them in your settings.",
           Colors.red,
           false,
         );
         return false;
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      print("❌ Permission permanently denied");
-      _showMessageDialog(
-        "Error",
-        "Location permissions are permanently denied. Please enable them in your settings.",
-        Colors.red,
-        false,
-      );
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showMessageDialog(
+            "Error",
+            "Location permissions are denied. Please enable them to mark attendance.",
+            Colors.red,
+            false,
+          );
+          return false;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _showMessageDialog(
+          "Error",
+          "Location permissions are permanently denied. Please enable them in your settings.",
+          Colors.red,
+          false,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (e, stackTrace) {
+      print("\n❌ ERROR CHECKING PERMISSIONS:");
+      print("Error type: ${e.runtimeType}");
+      print("Error message: $e");
+      print("Stack trace:");
+      print(stackTrace);
       return false;
     }
-
-    print("✅ All permission checks passed");
-    return true;
-
-  } catch (e, stackTrace) {
-    print("\n❌ ERROR CHECKING PERMISSIONS:");
-    print("Error type: ${e.runtimeType}");
-    print("Error message: $e");
-    print("Stack trace:");
-    print(stackTrace);
-    return false;
   }
-}
 
+  // Find Nearest Gym
+  Future<Gym?> _getNearestGym(Position userPosition) async {
+    Gym? nearestGym;
+    double nearestDistance = double.infinity;
+
+    for (var gym in gyms) {
+      double distance = Geolocator.distanceBetween(
+        userPosition.latitude,
+        userPosition.longitude,
+        gym.latitude,
+        gym.longitude,
+      );
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestGym = gym;
+      }
+    }
+
+    return nearestGym;
+  }
+
+  // Mark Attendance
   Future<void> _markAttendance() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      bool isNearGym = await isUserNearGym(gymLatitude, gymLongitude, attendanceRange);
+      Position? position = await _getCurrentLocation();
+      if (position == null) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
 
-      if (!isNearGym) {
+      Gym? nearestGym = await _getNearestGym(position);
+      if (nearestGym == null) {
         _showMessageDialog(
           "Error",
-          "You need to be within ${attendanceRange} meters of the gym to mark attendance.",
+          "No gym found nearby.",
           Colors.red,
           false,
+        );
+        return;
+      }
+
+      double distance = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        nearestGym.latitude,
+        nearestGym.longitude,
+      );
+
+      setState(() {
+        _currentDistance = distance;
+      });
+
+      if (distance > attendanceRange) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return OutOfRangeDialog(
+              context: context,
+              gyms: gyms,
+              userPosition: position!, // Pass the user's position
+            );
+          },
         );
         return;
       }
@@ -202,12 +232,8 @@ Future<bool> checkLocationPermission() async {
       );
 
       if (response.statusCode == 201) {
-        _showMessageDialog(
-          "Success",
-          "Attendance marked successfully!",
-          Colors.green,
-          true,
-        );
+        // ignore: use_build_context_synchronously
+        _showSuccessDialog(context, nearestGym);
       } else {
         _showMessageDialog(
           "Error",
@@ -230,57 +256,30 @@ Future<bool> checkLocationPermission() async {
     }
   }
 
+  // Show Success Dialog
+  void _showSuccessDialog(BuildContext context, Gym gym) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SuccessDialog(
+          context: context,
+          gym: gym,
+          currentDistance: _currentDistance.toInt(),
+        );
+      },
+    );
+  }
+
+  // Show Message Dialog
   void _showMessageDialog(String title, String message, Color color, bool isSuccess) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.transparent,
-          contentPadding: EdgeInsets.zero,
-          content: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            width: 300,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isSuccess ? Icons.check_circle_outline : Icons.cancel_outlined,
-                  color: isSuccess ? Colors.green : Colors.red,
-                  size: 50,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  message,
-                  style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.7)),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK', style: TextStyle(color: color)),
-                ),
-              ],
-            ),
-          ),
+        return MessageDialog(
+          title: title,
+          message: message,
+          color: color,
+          isSuccess: isSuccess,
         );
       },
     );

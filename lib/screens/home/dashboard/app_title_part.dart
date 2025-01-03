@@ -54,9 +54,9 @@ child: Container(
     border: Border.all(color: Colors.white, width: 1),
   ),
   child: ClipOval(
-    child: imagePath == null || imagePath.isEmpty
+    child: imagePath.isEmpty
         ? Image.asset(
-            'assets/images/profile/chetan.jpg',  // Replace with your default asset image path
+            'assets/images/profile/default_profile.jpg',  // Replace with your default asset image path
             fit: BoxFit.cover,
           )
         : Image(

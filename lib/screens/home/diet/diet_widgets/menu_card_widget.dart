@@ -21,14 +21,12 @@ class MenuCard extends StatefulWidget {
   _MenuCardState createState() => _MenuCardState();
 }
 
-
 class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
   late PageController _pageController;
   List<String> currentImagePaths = [];
   Timer? _timer;
   int _currentPageIndex = 0;
-  final Map<String, bool> _imageExistenceCache = {}; // Cache for image existence
 
   @override
   void initState() {
@@ -36,7 +34,6 @@ class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin
     _pageController = PageController();
     currentImagePaths = List.from(widget.imagePaths);
     _startImageSlideshow();
-    _checkImageExistence(); // Check image existence on initialization
   }
 
   @override
@@ -49,7 +46,6 @@ class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin
         if (_pageController.hasClients && currentImagePaths.isNotEmpty) {
           _pageController.jumpToPage(0);
         }
-        _checkImageExistence(); // Check existence on updates
       });
     }
   }
@@ -71,26 +67,6 @@ class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin
         }
       }
     });
-  }
-
-  Future<void> _checkImageExistence() async {
-    for (var item in (widget.details['menu'] as List)) {
-      String imagePath = 'assets/images/diet/menu/${item['item']}.jpg';
-      if (!_imageExistenceCache.containsKey(imagePath)) {
-        bool exists = await _assetExists(imagePath);
-        _imageExistenceCache[imagePath] = exists;
-      }
-    }
-    setState(() {}); // Trigger rebuild after checking existence
-  }
-
-  Future<bool> _assetExists(String path) async {
-    try {
-      final ByteData data = await rootBundle.load(path);
-      return data.buffer.asUint8List().isNotEmpty;
-    } catch (e) {
-      return false;
-    }
   }
 
   @override
@@ -144,8 +120,6 @@ class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin
                     ),
                   ),
                 Positioned(
-                  // height: 34,
-                  // width: 100,
                   bottom: 8,
                   left: 8,
                   child: Container(
@@ -188,7 +162,6 @@ class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin
         ExpandableMenu(
           isExpanded: _isExpanded,
           details: widget.details,
-          imageExistenceCache: _imageExistenceCache,
         ),
       ],
     );
@@ -198,51 +171,47 @@ class _MenuCardState extends State<MenuCard> with SingleTickerProviderStateMixin
 class ExpandableMenu extends StatelessWidget {
   final bool isExpanded;
   final Map<String, dynamic> details;
-  final Map<String, bool> imageExistenceCache;
 
   const ExpandableMenu({
     Key? key,
     required this.isExpanded,
     required this.details,
-    required this.imageExistenceCache,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (!isExpanded) return SizedBox.shrink();
+    if (!isExpanded) return const SizedBox.shrink();
 
     return MenuListWidget(
       details: details,
-      imageExistenceCache: imageExistenceCache,
     );
   }
 }
 
 class MenuListWidget extends StatelessWidget {
   final Map<String, dynamic> details;
-  final Map<String, bool> imageExistenceCache;
 
   const MenuListWidget({
     Key? key,
     required this.details,
-    required this.imageExistenceCache,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 247, 247, 247),
+        color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
       ),
       child: Column(
         children: (details['menu'] != null && details['menu'] is List)
             ? (details['menu'] as List).map((menuItem) {
-                String imagePath = 'assets/images/diet/menu/${menuItem['food_name']}.jpg';
+                String imageUrl = menuItem['food_image'] ?? '';
+                String localImagePath = 'assets/images/diet/menu/idly with sambar.jpg';
                 return GestureDetector(
                   onTap: () {
-                    _showMenuDialog(context, menuItem, imagePath);
+                    _showMenuDialog(context, menuItem, imageUrl, localImagePath);
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -284,9 +253,13 @@ class MenuListWidget extends StatelessWidget {
                             const SizedBox(width: 10),
                             CircleAvatar(
                               radius: 30,
-                              backgroundImage: imageExistenceCache[imagePath] == true
-                                  ? AssetImage(imagePath)
-                                  : AssetImage('assets/images/diet/menu/buttermilk.jpg'),
+                              backgroundImage: imageUrl.isNotEmpty
+                                  ? NetworkImage(imageUrl)
+                                  : AssetImage(localImagePath) as ImageProvider,
+                              onBackgroundImageError: (exception, stackTrace) {
+                                // Fallback to local image if network image fails
+                                print('Error loading image: $imageUrl');
+                              },
                             ),
                           ],
                         ),
@@ -301,17 +274,95 @@ class MenuListWidget extends StatelessWidget {
   }
 
   // Show Dialog on menu item click
-  void _showMenuDialog(BuildContext context, dynamic menuItem, String imagePath) {
+  void _showMenuDialog(BuildContext context, dynamic menuItem, String imageUrl, String localImagePath) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return MenuDialog(
           menuItem: menuItem,
-          imagePath: imagePath,
-          imageExistenceCache: imageExistenceCache,
+          imageUrl: imageUrl,
+          localImagePath: localImagePath,
         );
       },
     );
   }
-
 }
+
+// class MenuDialog extends StatelessWidget {
+//   final dynamic menuItem;
+//   final String imageUrl;
+//   final String localImagePath;
+
+//   const MenuDialog({
+//     Key? key,
+//     required this.menuItem,
+//     required this.imageUrl,
+//     required this.localImagePath,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return AlertDialog(
+//       content: Column(
+//         mainAxisSize: MainAxisSize.min,
+//         children: [
+//           ClipRRect(
+//             borderRadius: BorderRadius.circular(12),
+//             child: imageUrl.isNotEmpty
+//                 ? Image.network(
+//                     imageUrl,
+//                     width: 150,
+//                     height: 150,
+//                     fit: BoxFit.cover,
+//                     errorBuilder: (context, error, stackTrace) {
+//                       return _buildFallbackImage(localImagePath);
+//                     },
+//                   )
+//                 : _buildFallbackImage(localImagePath),
+//           ),
+//           const SizedBox(height: 16),
+//           Text(
+//             capitalizeWords(menuItem['food_name'] ?? ''),
+//             style: const TextStyle(
+//               fontWeight: FontWeight.bold,
+//               fontSize: 18,
+//             ),
+//           ),
+//           const SizedBox(height: 8),
+//           Text(
+//             menuItem['quantity'] ?? '',
+//             style: const TextStyle(
+//               fontSize: 14,
+//             ),
+//           ),
+//         ],
+//       ),
+//       actions: [
+//         TextButton(
+//           onPressed: () {
+//             Navigator.of(context).pop();
+//           },
+//           child: const Text('Close'),
+//         ),
+//       ],
+//     );
+//   }
+
+  Widget _buildFallbackImage(String localImagePath) {
+    return Image.asset(
+      localImagePath,
+      width: 150,
+      height: 150,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: 150,
+          height: 150,
+          color: Colors.grey,
+          child: const Center(
+            child: Text('Image not available'),
+          ),
+        );
+      },
+    );
+  }

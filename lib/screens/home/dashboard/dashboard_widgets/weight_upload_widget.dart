@@ -100,6 +100,9 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
       } else if (response.statusCode == 400){
         // If upload fails, show failure message
         _showMessageDialog('Upload Failed!', 'You have already uploaded your weight for this week!', Colors.red, false);
+      } else if (response.statusCode == 422){
+        // If upload fails, show failure message
+        _showMessageDialog('Upload Failed!', 'Please enter a valid weight. Only numbers and decimals are allowed!', Colors.red, false);
       }
     } catch (e) {
       print('Error during upload: $e');
@@ -244,6 +247,7 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             hintText: 'Enter weight',
+                            hintStyle: TextStyle(color: Colors.grey.shade600), 
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.green, width: 2.0),
                             ),
@@ -263,7 +267,7 @@ class _WeightHeightUploadDialogState extends State<WeightHeightUploadDialog> {
               const SizedBox(height: 16),
               // Image Upload Section
               const Text('Image', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black)),
-              SizedBox(height: 5,),
+              const SizedBox(height: 5,),
               GestureDetector(
                 onTap: _pickImage,
                 child: Stack(
